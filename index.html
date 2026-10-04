@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="가진 기물과 아이템 재료를 누르면 갈 만한 롤토체스 덱과 만들 아이템을 알려주는 초보용 도우미">
+<title>롤체 덱 길잡이</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>html{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: PC first. Left = sticky picker (unit portraits by cost, component counters). Right = ranked deck cards. Stacks to one column on narrow screens. */
+:root{
+  color-scheme:dark;
+  --bg:#12161c; --surface:#1a2029; --raised:#232b37; --line:#313c4c;
+  --fg:#e9edf2; --muted:#98a4b5; --accent:#e8b84a; --accent-ink:#1c1505;
+  --ok:#5fcf8e; --warn:#f0a35a;
+  --c1:#8d99a8; --c2:#3fb56d; --c3:#3f8fe0; --c4:#b160e6; --c5:#e8b84a;
+  --display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
+  --body:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#f3f5f8; --surface:#ffffff; --raised:#e9edf3; --line:#cfd6e0;
+  --fg:#18202b; --muted:#5b6778; --accent:#9a6b00; --accent-ink:#ffffff;
+  --ok:#17804a; --warn:#b05a10;
+  --c1:#6b7684; --c2:#1f8a4c; --c3:#1f6fc4; --c4:#8a3cc4; --c5:#9a6b00;
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f3f5f8; --surface:#ffffff; --raised:#e9edf3; --line:#cfd6e0;
+  --fg:#18202b; --muted:#5b6778; --accent:#9a6b00; --accent-ink:#ffffff;
+  --ok:#17804a; --warn:#b05a10;
+  --c1:#6b7684; --c2:#1f8a4c; --c3:#1f6fc4; --c4:#8a3cc4; --c5:#9a6b00;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;padding-inline:24px;padding-block:28px 40px}
+.wrap{max-width:1400px;margin-inline:auto;display:flex;flex-direction:column;gap:24px}
+h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1.1;margin:0}
+h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
+h3{font-size:15px;font-weight:600;margin:0}
+p{margin:0}
+header{display:flex;align-items:baseline;gap:8px 20px;flex-wrap:wrap}
+.lede{color:var(--muted)}
+.meta{font-size:13px;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:12px}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.link{background:none;border:0;padding:4px 0;color:var(--accent);text-decoration:underline;text-underline-offset:3px;font-size:14px}
+.example{font-size:13px;color:var(--warn);border:1px dashed var(--warn);border-radius:6px;padding:6px 10px}
+input[type=search]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--fg);font:inherit}
+.cols{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:36px;align-items:start}
+.col{display:flex;flex-direction:column;gap:24px;min-width:0}
+.pick{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+@media (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr);gap:24px}.pick{position:static;max-height:none}body{padding-inline:16px;padding-block:20px 96px}}
+/* portraits */
+.costrow{display:flex;gap:8px;align-items:flex-start}
+.costtag{flex:none;width:30px;font-family:var(--display);font-size:15px;padding-top:12px}
+.tiles{display:flex;flex-wrap:wrap;gap:6px 4px;min-width:0}
+.tile{width:58px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:0;font-size:11.5px;line-height:1.2;text-align:center;color:var(--fg)}
+.tile>span:last-child{overflow-wrap:anywhere}
+.pt{position:relative;width:46px;height:46px;border-radius:7px;border:2px solid var(--c1);background:var(--raised);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:18px;color:var(--muted);overflow:hidden;flex:none}
+.pt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.k1 .pt{border-color:var(--c1)}.k2 .pt{border-color:var(--c2)}.k3 .pt{border-color:var(--c3)}.k4 .pt{border-color:var(--c4)}.k5 .pt{border-color:var(--c5)}
+.t1{color:var(--c1)}.t2{color:var(--c2)}.t3{color:var(--c3)}.t4{color:var(--c4)}.t5{color:var(--c5)}
+.bdg{position:absolute;left:0;right:0;bottom:0;font-family:var(--body);font-size:10px;font-weight:600;line-height:14px;background:var(--bg);color:var(--fg);opacity:.92}
+.bdg.star{color:var(--c5)}.bdg.ok{color:var(--ok)}.bdg.top{bottom:auto;top:0;color:var(--accent)}
+button.tile{opacity:.72}
+button.tile:hover{opacity:1}
+button.tile[aria-pressed="true"]{opacity:1;font-weight:600}
+button.tile[aria-pressed="true"] .pt{box-shadow:0 0 0 2px var(--fg)}
+.tile.own .pt{box-shadow:0 0 0 2px var(--ok)}
+.tile.own{color:var(--ok)}
+/* components */
+.comps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.comps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.comp{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 6px;min-width:0;text-align:center}
+.comp.has{border-color:var(--accent)}
+.comp b{font-weight:600;font-size:14px;display:block}
+.comp small{color:var(--muted);font-size:11px;display:block;line-height:1.25}
+.ic{position:relative;width:34px;height:34px;border-radius:6px;background:var(--raised);border:1px solid var(--line);overflow:hidden;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+.ic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ic.sm{width:22px;height:22px;border-radius:4px;font-size:10px}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--raised);font-size:17px;line-height:1}
+.step button:disabled{opacity:.35;cursor:default}
+.step output{width:22px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+/* deck cards */
+.deck{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.deck.top{border-color:var(--accent)}
+.decktitle{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rank{font-family:var(--display);font-size:16px;color:var(--accent)}
+.name{font-family:var(--display);font-size:26px;line-height:1.15}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.tag.easy{color:var(--ok);border-color:var(--ok)}.tag.hard{color:var(--warn);border-color:var(--warn)}
+.whyl{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:2px}
+.block{display:flex;flex-direction:column;gap:8px;min-width:0}
+.label{font-size:13px;font-weight:600;color:var(--muted)}
+.todo{background:var(--raised);border-radius:10px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
+.todo h3{grid-column:1/-1;font-family:var(--display);font-weight:400;font-size:19px;color:var(--accent)}
+.todo .pt,.todo .ic{background:var(--surface)}
+.boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.itemsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px}
+@media (max-width:700px){.todo,.boards,.itemsgrid{grid-template-columns:minmax(0,1fr)}}
+.items{display:flex;flex-direction:column;gap:8px;padding:0;margin:0;list-style:none}
+.items li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center}
+.it{display:flex;flex-direction:column;min-width:0;line-height:1.3;font-size:15px}
+.it small{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.it em{font-style:normal;color:var(--muted);font-size:12.5px}
+.st{font-size:12px;border-radius:4px;padding:2px 7px;text-align:center;white-space:nowrap}
+.st.now{background:var(--ok);color:var(--bg);font-weight:600}
+.st.half{border:1px solid var(--warn);color:var(--warn)}
+.st.none{border:1px solid var(--line);color:var(--muted)}
+.noimg .ic{display:none}
+.noimg .items li{grid-template-columns:minmax(0,1fr) auto}
+.holder{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.holder .pt{width:30px;height:30px;font-size:13px;border-width:2px}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600}
+.deck details>div{display:flex;flex-direction:column;gap:14px;padding-top:14px}
+.deck summary{font-weight:500;font-size:15px}
+.lv{display:flex;flex-wrap:wrap;gap:6px}
+.lv span{background:var(--raised);border-radius:6px;padding:4px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+.lv i{font-style:normal;color:var(--muted);margin-right:6px}
+.guide{align-self:flex-start;display:flex;flex-direction:column;gap:2px;text-decoration:none;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:10px 18px;font-weight:600}
+.guide span{font-weight:400;font-size:12.5px}
+dl{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+dt{font-weight:600;white-space:nowrap}dd{margin:0;color:var(--muted)}
+a{color:var(--accent)}
+.bar{display:none;position:fixed;left:0;right:0;bottom:0;background:var(--raised);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar .in{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar .txt{min-width:0}
+.bar .txt b{font-family:var(--display);font-weight:400;font-size:18px;display:block;overflow-wrap:anywhere}
+.go{flex:none;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 14px;font-weight:600}
+@media (max-width:1000px){.bar{display:block}}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>롤체 덱 길잡이</h1>
+    <p class="lede">가진 기물과 아이템 재료를 누르면, 갈 만한 덱과 만들 아이템을 바로 알려줍니다.</p>
+    <p class="meta">세트 18 신비의 숲 · 패치 18.3b · 롤체지지 추천 메타 기준 · 2026-10-04 정리</p>
+  </header>
+
+  <div class="cols">
+  <div class="col pick">
+    <section aria-labelledby="h-units">
+      <div class="head">
+        <h2 id="h-units">1. 내 기물</h2>
+        <button class="link" id="reset" type="button">전부 지우기</button>
+      </div>
+      <p class="example" id="exnote">예시로 몇 개 골라 둔 상태입니다. 기물을 누르면 예시가 지워지고 내 선택으로 바뀝니다.</p>
+      <p class="meta">한 번 누르면 보유, 두 번 누르면 2성(★★), 세 번 누르면 해제.</p>
+      <input type="search" id="q" placeholder="기물 이름 검색 (예: 아무무)" aria-label="기물 이름 검색">
+      <div id="unitgrid" style="display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+    <section aria-labelledby="h-comp">
+      <h2 id="h-comp">2. 내 아이템 재료</h2>
+      <div class="comps" id="compgrid"></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section aria-labelledby="h-res" id="results">
+      <div class="head">
+        <h2 id="h-res">3. 추천 덱</h2>
+        <label class="toggle"><input type="checkbox" id="easy" checked> 쉬운 덱 먼저</label>
+      </div>
+      <div id="decks" style="display:flex;flex-direction:column;gap:16px"></div>
+    </section>
+    <section>
+      <details>
+        <summary>용어가 낯설다면</summary>
+        <dl>
+          <dt>캐리</dt><dd>덱의 딜을 책임지는 기물. 공격 아이템을 몰아줍니다.</dd>
+          <dt>탱커</dt><dd>앞줄에서 맞아 주는 기물. 방어 아이템을 줍니다.</dd>
+          <dt>성급</dt><dd>같은 기물 3개를 모으면 2성, 2성 3개를 모으면 3성이 됩니다.</dd>
+          <dt>리롤</dt><dd>골드를 내고 상점을 새로 고치는 것.</dd>
+          <dt>이자</dt><dd>라운드가 끝날 때 가진 골드 10당 1골드를 더 받습니다. 그래서 보통 50골드를 유지합니다.</dd>
+          <dt>상징</dt><dd>기물에게 특성 하나를 더해 주는 아이템. 뒤집개가 있어야 만들 수 있습니다.</dd>
+        </dl>
+      </details>
+      <details>
+        <summary>이 추천은 어떻게 계산하나요</summary>
+        <p style="margin-top:10px;color:var(--muted)">가진 기물이 덱의 5레벨, 7레벨, 완성 보드에 얼마나 들어가는지, 덱의 주요 특성과 얼마나 겹치는지, 가진 재료로 캐리와 탱커 아이템을 만들 수 있는지를 점수로 합칩니다. 캐리를 이미 가지고 있으면 점수가 더 크고, 2성인 기물은 두 배로 칩니다. 상징이나 유물이 있어야 하는 조건부 덱은 점수를 조금 낮춥니다. 덱 30개의 보드, 아이템, 난이도, 레벨업 타이밍은 <a href="https://lolchess.gg/meta?hl=ko">롤체지지 추천 메타</a>의 덱별 공략에서 가져왔고, 덱 설명 한 줄은 그 공략을 요약한 것입니다. 패치가 바뀌면 데이터를 갱신해야 합니다. 기물과 아이템 이미지는 롤체지지 이미지 서버에서 불러옵니다.</p>
+      </details>
+    </section>
+  </div>
+  </div>
+</div>
+
+<div class="bar"><div class="in">
+  <div class="txt"><span class="meta" id="barlabel">지금 1순위</span><b id="bartop">-</b></div>
+  <button class="go" id="go" type="button">추천 보기</button>
+</div></div>
+
+<script>
+
+const U = [
+["Akali","아칼리",1,["지옥불","적응가","약탈자"]],["Camille","카밀",1,["악의 여단","약탈자"]],["Cinderling","불타는 묘목",1,["협곡야수","사냥꾼"]],["Karma","카르마",1,["개화","주문술사"]],["Kobuko","코부코",1,["날렵이","싸움꾼"]],["Leona","레오나",1,["햇빛","엄호대"]],["Ornn","오른",1,["나무정령","엄호대"]],["Pebbles","조약돌",1,["협곡야수","기원자"]],["Rakan","라칸",1,["요정","전쟁기계","선봉대"]],["RekSai","렉사이",1,["검은 가시","싸움꾼"]],["Varus","바루스",1,["지옥불","속사포"]],["Veigar","베이가",1,["검은 가시","날렵이","주문술사"]],["Xayah","자야",1,["나무정령","요정","속사포"]],["Yorick","요릭",1,["개화","전쟁기계","소환사"]],
+["Alistar","알리스타",2,["나무정령","싸움꾼"]],["Caitlyn","케이틀린",2,["악의 여단","사냥꾼"]],["Elise","엘리스",2,["악의 여단","선봉대"]],["Gromp","심술두꺼비",2,["협곡야수","적응가"]],["Kayle","케일",2,["햇빛","속사포"]],["LeBlanc","르블랑",2,["나무정령","주문술사"]],["Murkwolf","어스름늑대",2,["협곡야수","약탈자"]],["Scuttlecrab","바위 게",2,["협곡야수","전쟁기계"]],["Sejuani","세주아니",2,["햇빛","전쟁기계"]],["Shen","쉔",2,["지옥불","엄호대"]],["Teemo","티모",2,["날렵이","기원자"]],["Warwick","워윅",2,["검은 가시","약탈자"]],["Yunara","유나라",2,["개화","처형자"]],
+["Azir","아지르",3,["검은 가시","처형자","소환사"]],["Cassiopeia","카시오페아",3,["악의 여단","주문술사"]],["Diana","다이애나",3,["달빛","약탈자","선봉대"]],["Fiddlesticks","피들스틱",3,["치명적인 꽃","엄호대","주문술사"]],["Hecarim","헤카림",3,["나무정령","선봉대"]],["KhaZix","카직스",3,["경쟁자"]],["KogMaw","코그모",3,["부식","적응가","기원자"]],["Krug","돌거북",3,["협곡야수","싸움꾼"]],["Raptor","어미 부리",3,["협곡야수","소환사","속사포"]],["MasterYi","마스터 이",3,["개화","적응가"]],["Rammus","람머스",3,["날렵이","엄호대"]],["Rengar","렝가",3,["경쟁자"]],["Tristana","트리스타나",3,["요정","날렵이","사냥꾼"]],["Vi","바이",3,["원시","전쟁기계"]],
+["Ahri","아리",4,["개화","주문술사"]],["Amumu","아무무",4,["지옥불","전쟁기계"]],["Aphelios","아펠리오스",4,["달빛","속사포"]],["Brambleback","덩굴정령",4,["협곡야수","약탈자"]],["Ezreal","이즈리얼",4,["나무정령","처형자"]],["Lillia","릴리아",4,["요정","엄호대"]],["Malphite","말파이트",4,["검은 가시","거석"]],["Morgana","모르가나",4,["악의 여단","기원자"]],["Nidalee","니달리",4,["원시","적응가"]],["AncientSentinel","감시자",4,["협곡야수","선봉대","기원자"]],["Sett","세트",4,["개화","싸움꾼"]],["Sivir","시비르",4,["원시","사냥꾼"]],["Soraka","소라카",4,["치명적인 꽃","처형자"]],["Zyra","자이라",4,["가시의 여인","소환사"]],
+["Alune","알룬",5,["조율","달빛","주문술사"]],["Ashe","애쉬",5,["개화","사냥꾼"]],["Draven","드레이븐",5,["현상금 추적자"]],["TheElderDragon","장로 드래곤",5,["최상위 포식자","협곡야수"]],["Gnar","나르",5,["나무정령","날렵이","싸움꾼"]],["Ivern","아이번",5,["자연의 아버지"]],["Kennen","케넨",5,["지옥불","처형자"]],["Lux","럭스",5,["화신"]],["Maokai","마오카이",5,["고목","전쟁기계"]],["Taric","타릭",5,["에메랄드 성위","선봉대"]]
+].map(([id,ko,cost,traits])=>({id,ko,cost,traits}));
+const UM = Object.fromEntries(U.map(u=>[u.id,u]));
+
+// first breakpoint of each shared trait (unique one-unit traits are left out on purpose)
+const BP = {"적응가":2,"검은 가시":2,"개화":3,"싸움꾼":2,"악의 여단":3,"엄호대":2,"나무정령":3,"처형자":2,"요정":2,"치명적인 꽃":1,"사냥꾼":2,"지옥불":2,"기원자":2,"전쟁기계":2,"달빛":2,"원시":2,"속사포":2,"약탈자":2,"협곡야수":3,"경쟁자":1,"햇빛":3,"주문술사":2,"날렵이":3,"소환사":2,"선봉대":2};
+
+const C = [["BF","대검","B.F. 대검"],["Bow","곡궁","곡궁"],["Rod","지팡이","쓸데없이 큰 지팡이"],["Tear","눈물","여신의 눈물"],["Vest","조끼","쇠사슬 조끼"],["Cloak","망토","음전자 망토"],["Belt","허리띠","거인의 허리띠"],["Glove","장갑","연습용 장갑"]];
+const CM = Object.fromEntries(C.map(c=>[c[0],c[1]]));
+const I = {
+"죽음의 검":["BF","BF"],"거인 학살자":["BF","Bow"],"마법공학 총검":["BF","Rod"],"쇼진의 창":["BF","Tear"],"밤의 끝자락":["BF","Vest"],"피바라기":["BF","Cloak"],"스테락의 도전":["BF","Belt"],"무한의 대검":["BF","Glove"],
+"붉은 덩굴정령":["Bow","Bow"],"구인수의 격노검":["Bow","Rod"],"공허의 지팡이":["Bow","Tear"],"거인의 결의":["Bow","Vest"],"크라켄의 분노":["Bow","Cloak"],"내셔의 이빨":["Bow","Belt"],"최후의 속삭임":["Bow","Glove"],
+"라바돈의 죽음모자":["Rod","Rod"],"대천사의 지팡이":["Rod","Tear"],"크라운가드":["Rod","Vest"],"이온 충격기":["Rod","Cloak"],"모렐로노미콘":["Rod","Belt"],"보석 건틀릿":["Rod","Glove"],
+"푸른 파수꾼":["Tear","Tear"],"수호자의 맹세":["Tear","Vest"],"적응형 투구":["Tear","Cloak"],"정령의 형상":["Tear","Belt"],"정의의 손길":["Tear","Glove"],
+"덤불 조끼":["Vest","Vest"],"가고일 돌갑옷":["Vest","Cloak"],"태양불꽃 망토":["Vest","Belt"],"굳건한 심장":["Vest","Glove"],
+"용의 발톱":["Cloak","Cloak"],"저녁갑주":["Cloak","Belt"],"수은":["Cloak","Glove"],
+"워모그의 갑옷":["Belt","Belt"],"타격대의 철퇴":["Belt","Glove"],"도적의 장갑":["Glove","Glove"]
+};
+const BASE="https://lolchess.gg/builder/guide/";
+const STYLE={f8:"8레벨 운영",f9:"9레벨 운영",r1:"1코스트 리롤",r2:"2코스트 리롤",r3:"3코스트 리롤"};
+const DIFF={E:["쉬움","easy"],M:["보통",""],H:["어려움","hard"]};
+const LV={
+ A:[["2-1~2-3",4],["2-5",5],["3-2",6],["3-5~3-7",7],["4-2",8],["4-5~5-1",9]],
+ B:[["2-1~2-3",4],["2-5",5],["3-2",6],["3-5~3-7",7],["4-2",8],["5-1~5-3",9]],
+ R3:[["2-1~2-3",4],["2-5",5],["3-2",6],["3-5~3-7",7],["3코스트 3성 뒤",8],["5-1~5-3",9]],
+ R2:[["2-3",4],["3-1",5],["3-2",6],["2코스트 3성 뒤",7],["4-5~5-1",8]],
+ R1:[["2-3",4],["3-1",5],["1코스트 3성 뒤",6],["4-2",7],["4-5~5-1",8]],
+ RIFT:[["2-1~2-3",4],["2-5",5],["3-2",6],["3-5",7],["4-2",8]]
+};
+const SPECIAL={"새벽심장":"유물 · 조합 불가","명멸검":"유물 · 조합 불가","마법사의 최후":"유물 · 조합 불가","요정 상징":"대검 + 뒤집개","날렵이 상징":"망토 + 뒤집개","치명적인 꽃 상징":"증강으로만 획득"};
+const D = [{"k":"64dc7e7863cf1d86a0ebdd92be8bcd2807d5680c","n":"장로 드래곤 드레이븐","d":"H","st":"f9","lv":"A","cond":false,"tip":"골드나 경험치 증강을 잡았을 때 9레벨까지 빨리 올려 5코스트를 모으는 덱입니다. 초반은 협곡야수로 버팁니다.","b":[["Taric",2,[]],["AncientSentinel",2,[]],["Amumu",2,[]],["Maokai",2,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Kennen",2,["도적의 장갑"]],["TheElderDragon",2,["무한의 대검","최후의 속삭임","타격대의 철퇴"]],["Ivern",2,[]],["Draven",2,["구인수의 격노검","크라켄의 분노","크라켄의 분노"]]],"e5":["Krug","Scuttlecrab","Murkwolf","Pebbles","Cinderling"],"e7":["Krug","Scuttlecrab","AncientSentinel","Murkwolf","Pebbles","Gromp","Cinderling"],"c":"TheElderDragon","t":"Maokai"},{"k":"75167d1243ffaf03980ef2ef7c3e380a9c4012e1","n":"6전쟁기계 밸류","d":"M","st":"f8","lv":"A","cond":false,"tip":"전쟁기계 6으로 앞줄을 세우고 자이라를 키웁니다. 자이라가 2성이 되면 9레벨에서 애쉬를 더합니다.","b":[["Yorick",2,[]],["Sejuani",2,[]],["Scuttlecrab",2,[]],["Vi",2,["이온 충격기"]],["Maokai",2,[]],["Amumu",2,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Zyra",2,["대천사의 지팡이","대천사의 지팡이","마법공학 총검"]],["Sivir",2,["무한의 대검","타격대의 철퇴","거인 학살자"]],["Ashe",2,["최후의 속삭임","붉은 덩굴정령","쇼진의 창"]]],"e5":["Yorick","Rakan","Karma","Yunara","Veigar"],"e7":["Vi","Sejuani","Scuttlecrab","Yorick","Karma","Azir","Yunara"],"c":"Zyra","t":"Amumu"},{"k":"03263242126ca9f2e6965c6f658cf3a24d1aa2b3","n":"4전쟁기계 애쉬","d":"M","st":"f9","lv":"A","cond":false,"tip":"골드나 경험치 증강으로 9레벨을 빨리 찍고 애쉬와 시비르를 2성으로 만드는 덱입니다.","b":[["Vi",2,[]],["Taric",2,[]],["Maokai",2,["덤불 조끼","용의 발톱","정령의 형상"]],["Amumu",2,[]],["Rakan",2,[]],["Kennen",2,[]],["Ashe",2,["최후의 속삭임","붉은 덩굴정령","쇼진의 창"]],["Sivir",2,["무한의 대검","타격대의 철퇴","죽음의 검"]],["Ivern",2,[]]],"e5":["Rakan","Scuttlecrab","Yorick","Yunara","Karma"],"e7":["Vi","Scuttlecrab","Yorick","Rakan","Yunara","Azir","Karma"],"c":"Ashe","t":"Maokai"},{"k":"538b7728a877a5189537c6c3c2921caa675d1da4","n":"니달리 아펠리오스","d":"M","st":"f8","lv":"B","cond":false,"tip":"8레벨에서 아펠리오스와 니달리를 2성으로 만듭니다. 초반에는 구인수의 격노검을 만들어 AD 기물에게 주고 체력을 지키세요.","b":[["AncientSentinel",2,["수호자의 맹세","수호자의 맹세","적응형 투구"]],["Amumu",2,["가고일 돌갑옷","워모그의 갑옷","굳건한 심장"]],["Diana",2,[]],["Vi",2,[]],["Nidalee",2,["무한의 대검","쇼진의 창","스테락의 도전"]],["Aphelios",2,["구인수의 격노검","크라켄의 분노","거인 학살자"]],["KogMaw",2,[]],["Varus",2,[]]],"e5":["Alistar","Ornn","Shen","Xayah","Varus"],"e7":["AncientSentinel","Vi","Diana","Nidalee","Aphelios","KogMaw","Varus"],"c":"Aphelios","t":"AncientSentinel"},{"k":"cff64403e21c354a5f9aae7523c46984382ac03f","n":"나무정령 베이가","d":"M","st":"r1","lv":"R1","cond":false,"tip":"베이가를 3성으로 키우는 리롤 덱입니다. 여신의 눈물을 먼저 모아 푸른 파수꾼을 만드세요.","b":[["Ornn",3,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["LeBlanc",3,[]],["Veigar",3,["푸른 파수꾼","보석 건틀릿","새벽심장"]],["Cassiopeia",2,[]],["Fiddlesticks",2,[]],["Alistar",3,[]],["RekSai",3,[]]],"e5":["Ornn","Veigar","LeBlanc","Alistar","RekSai"],"e7":["Ornn","LeBlanc","Veigar","Cassiopeia","Fiddlesticks","Alistar","RekSai"],"c":"Veigar","t":"Ornn"},{"k":"459b918903d4db24482c989706cf22802da60c82","n":"달빛 다이애나 카직스","d":"M","st":"r3","lv":"A","cond":false,"tip":"나무정령이나 개화 기물로 초반을 넘기고, 7레벨에서 50골드를 유지하며 카직스, 헤카림, 다이애나를 3성으로 만듭니다.","b":[["KhaZix",3,["정의의 손길","밤의 끝자락","라바돈의 죽음모자"]],["Hecarim",3,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Diana",3,["이온 충격기","정의의 손길","보석 건틀릿"]],["Fiddlesticks",2,[]],["Ornn",2,[]],["Ezreal",2,["죽음의 검","쇼진의 창","붉은 덩굴정령"]],["Alune",2,[]],["Soraka",2,[]]],"e5":["KhaZix","Hecarim","Ornn","Diana","LeBlanc"],"e7":["KhaZix","Hecarim","Diana","Fiddlesticks","Ornn","Ezreal","Soraka"],"c":"KhaZix","t":"Hecarim"},{"k":"7365c6b0878f4964c3a99efd02d726196631553d","n":"람머스 아지르","d":"M","st":"r3","lv":"R3","cond":false,"tip":"50골드를 모아 7레벨에서 람머스와 아지르를 3성으로 만드는 덱입니다.","b":[["Rammus",3,["가고일 돌갑옷","크라운가드","가고일 돌갑옷"]],["Fiddlesticks",3,[]],["Teemo",3,[]],["Kennen",2,[]],["Azir",3,["마법공학 총검","구인수의 격노검","라바돈의 죽음모자"]],["Zyra",2,["공허의 지팡이","모렐로노미콘","쇼진의 창"]],["Soraka",2,[]],["Veigar",2,[]]],"e5":["Rammus","Fiddlesticks","Teemo","Azir","Veigar"],"e7":["Rammus","Fiddlesticks","Teemo","Azir","Zyra","Soraka","Veigar"],"c":"Azir","t":"Rammus"},{"k":"b8422d076d2e46af260244f65db4b6971f2ab0ad","n":"카직스 아지르","d":"M","st":"r3","lv":"R3","cond":false,"tip":"초반에 카직스로 킬을 잘 먹었을 때 갑니다. 7레벨에서 바이, 카직스, 아지르를 3성으로 만듭니다.","b":[["Vi",3,["가고일 돌갑옷","가고일 돌갑옷","워모그의 갑옷"]],["Sett",2,[]],["KhaZix",3,[]],["Yorick",2,[]],["RekSai",2,[]],["Azir",3,["대천사의 지팡이","마법공학 총검","라바돈의 죽음모자"]],["Zyra",2,["공허의 지팡이","붉은 덩굴정령"]],["Yunara",2,[]]],"e5":["Yorick","Rakan","KhaZix","Yunara","Karma"],"e7":["Vi","Sett","KhaZix","Yorick","RekSai","Azir","Yunara"],"c":"Azir","t":"Vi"},{"k":"e6975251405bf14c9d453c3bd1f1ebd9dfca4792","n":"기원자 모르가나 아리","d":"M","st":"f8","lv":"A","cond":false,"tip":"초반은 악의 여단이나 개화로 넘기고 8레벨에서 모르가나와 아리를 완성합니다.","b":[["Sett",2,["가고일 돌갑옷","워모그의 갑옷","스테락의 도전"]],["Taric",2,[]],["Krug",2,[]],["Morgana",2,["모렐로노미콘","공허의 지팡이","라바돈의 죽음모자"]],["AncientSentinel",2,["수호자의 맹세"]],["Karma",2,[]],["Ahri",2,["보석 건틀릿","타격대의 철퇴","쇼진의 창"]],["Pebbles",2,[]]],"e5":["Elise","Camille","Cassiopeia","Caitlyn","Karma"],"e7":["Elise","Camille","Diana","Morgana","Cassiopeia","Caitlyn","Karma"],"c":"Morgana","t":"Sett"},{"k":"d8c8616eee053bacb1e00724423f852b4ffe5c42","n":"장로 드래곤 애쉬","d":"M","st":"f9","lv":"A","cond":false,"tip":"골드나 경험치 증강이 있을 때 9레벨까지 빨리 올리는 덱입니다. 초반은 협곡야수로 버팁니다.","b":[["Taric",2,[]],["Vi",2,[]],["AncientSentinel",2,[]],["Maokai",2,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["TheElderDragon",2,["무한의 대검","타격대의 철퇴","죽음의 검"]],["Ivern",2,[]],["Sivir",2,["무한의 대검","타격대의 철퇴","죽음의 검"]],["Ashe",2,["최후의 속삭임","붉은 덩굴정령","쇼진의 창"]]],"e5":["Scuttlecrab","Murkwolf","Krug","Pebbles","Cinderling"],"e7":["Scuttlecrab","AncientSentinel","Murkwolf","Brambleback","Krug","Pebbles","Cinderling"],"c":"TheElderDragon","t":"Maokai"},{"k":"9dc355f93a4c34cd201088e62ba00b2e9928df1d","n":"고밸류 드레이븐","d":"H","st":"f9","lv":"A","cond":false,"tip":"9레벨에서 5코스트를 여럿 쓰는 덱입니다. 골드나 경험치 증강이 있을 때만 권합니다.","b":[["Taric",2,[]],["Amumu",2,[]],["Alistar",2,[]],["Maokai",2,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Kennen",2,["도적의 장갑"]],["Gnar",2,["도적의 장갑"]],["Draven",2,["구인수의 격노검","크라켄의 분노","크라켄의 분노"]],["Ivern",2,[]],["Ezreal",2,["죽음의 검","최후의 속삭임","쇼진의 창"]]],"e5":["Rakan","Ornn","Alistar","Varus","Xayah"],"e7":["Rakan","Ornn","Kobuko","Alistar","Hecarim","LeBlanc","Xayah"],"c":"Draven","t":"Maokai"},{"k":"b21754cfa96db92918a4d94a3720e1060e40366c","n":"고밸류 알룬","d":"H","st":"f9","lv":"A","cond":false,"tip":"9레벨에서 4, 5코스트를 2성으로 만드는 덱입니다. 초반에는 이길 수 있는 조합으로 연승하며 체력을 지키세요.","b":[["Amumu",2,[]],["Maokai",2,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Taric",2,[]],["Diana",2,[]],["Kennen",2,["도적의 장갑"]],["Fiddlesticks",2,[]],["Lux",2,["쇼진의 창","라바돈의 죽음모자","공허의 지팡이"]],["Ivern",2,[]],["Alune",2,["푸른 파수꾼","대천사의 지팡이","적응형 투구"]]],"e5":["Yorick","Rakan","Yunara","Veigar","Karma"],"e7":["Yorick","Diana","Rakan","Azir","Yunara","Karma","Cassiopeia"],"c":"Alune","t":"Maokai"},{"k":"53129beca56d31ae2fc3aab79160122f69ecd3ac","n":"처형자 소라카","d":"M","st":"f8","lv":"A","cond":false,"tip":"말파이트를 앞줄에 혼자 세우고 소라카와 자이라로 딜을 넣는 덱입니다.","b":[["Malphite",2,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Kennen",2,["도적의 장갑"]],["Fiddlesticks",2,[]],["Amumu",2,[]],["Yorick",2,[]],["Soraka",2,["쇼진의 창","라바돈의 죽음모자","대천사의 지팡이"]],["Zyra",2,["쇼진의 창","대천사의 지팡이","공허의 지팡이"]],["Ezreal",2,[]],["Azir",2,[]]],"e5":["Yorick","Karma","Veigar","Yunara","Azir"],"e7":["Fiddlesticks","Yorick","Soraka","Yunara","Veigar","Karma","Azir"],"c":"Soraka","t":"Malphite"},{"k":"75694e835402faf1e8e365b4f34bbb73a100c6d1","n":"처형자 세트","d":"M","st":"f8","lv":"A","cond":false,"tip":"8레벨에서 세트를 탱커로 세우고 소라카, 아리, 이즈리얼을 2성으로 만듭니다.","b":[["Sett",2,["가고일 돌갑옷","가고일 돌갑옷","워모그의 갑옷"]],["Gnar",2,[]],["Kennen",2,[]],["Ornn",2,[]],["Fiddlesticks",2,[]],["Soraka",2,["쇼진의 창","라바돈의 죽음모자","대천사의 지팡이"]],["Ahri",2,["모렐로노미콘","공허의 지팡이","적응형 투구"]],["Ezreal",2,["죽음의 검","최후의 속삭임","쇼진의 창"]],["Yunara",2,[]]],"e5":["Alistar","Ornn","Yorick","Karma","LeBlanc"],"e7":["Sett","Ornn","Fiddlesticks","Alistar","Yunara","Karma","Ezreal"],"c":"Soraka","t":"Sett"},{"k":"9a17135f995c3115796fa096c4d2dce31e12eb26","n":"개화 애쉬 시비르","d":"M","st":"f8","lv":"A","cond":false,"tip":"초중반에 개화를 많이 모아 버티다가 8레벨에서 4코스트를 넣어 완성합니다.","b":[["Sett",2,["가고일 돌갑옷","가고일 돌갑옷","워모그의 갑옷"]],["Vi",2,[]],["Gnar",2,[]],["Yorick",2,[]],["Ahri",2,["보석 건틀릿","타격대의 철퇴","쇼진의 창"]],["Sivir",2,["무한의 대검","죽음의 검","타격대의 철퇴"]],["Zyra",2,[]],["Karma",2,[]],["Ashe",2,["최후의 속삭임","붉은 덩굴정령","쇼진의 창"]]],"e5":["Yorick","Veigar","Karma","Yunara","Azir"],"e7":["Sett","Vi","Yorick","Ahri","Sivir","Yunara","Karma"],"c":"Ashe","t":"Sett"},{"k":"f7cbb31f69f9ca6fa342a2c284691492874fa966","n":"개화 애쉬 알룬","d":"M","st":"f9","lv":"A","cond":false,"tip":"골드나 경험치 증강이 있을 때 강한 9레벨 덱입니다.","b":[["Rammus",2,[]],["Lillia",2,[]],["Diana",2,[]],["Sett",2,["가고일 돌갑옷","워모그의 갑옷","굳건한 심장"]],["Gnar",2,["도적의 장갑"]],["Tristana",2,[]],["Ahri",2,["쇼진의 창","보석 건틀릿","타격대의 철퇴"]],["Alune",2,["적응형 투구","대천사의 지팡이","공허의 지팡이"]],["Ashe",2,["최후의 속삭임","붉은 덩굴정령","쇼진의 창"]]],"e5":["Yorick","Rakan","Veigar","Karma","Yunara"],"e7":["Yorick","Rakan","KogMaw","Karma","Veigar","Yunara","Azir"],"c":"Ashe","t":"Sett"},{"k":"c41e1094b4a3c30c509888d5fb97a58b69179f9b","n":"햇빛 유나라 리롤","d":"M","st":"r2","lv":"R2","cond":false,"tip":"50골드를 모아 6레벨에서 리롤해 세주아니, 유나라, 르블랑, 요릭, 카르마를 3성으로 만듭니다.","b":[["Sejuani",3,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Yorick",3,[]],["Leona",2,[]],["Yunara",3,["죽음의 검","쇼진의 창","최후의 속삭임"]],["LeBlanc",3,["쇼진의 창","보석 건틀릿","공허의 지팡이"]],["Karma",3,[]],["Kayle",2,[]],["Azir",2,[]]],"e5":["Sejuani","Yorick","Yunara","LeBlanc","Karma"],"e7":["Sejuani","Yorick","Leona","Yunara","LeBlanc","Karma","Kayle"],"c":"Yunara","t":"Sejuani"},{"k":"4cd8598a1ad5c0e09cde4f2527dcd54d1dfb2968","n":"사냥꾼 케이틀린 리롤","d":"M","st":"r2","lv":"R2","cond":false,"tip":"50골드를 모아 6레벨에서 케이틀린과 바위 게를 3성으로 만드는 덱입니다.","b":[["Scuttlecrab",3,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Sejuani",3,[]],["Rakan",2,[]],["Vi",2,[]],["Caitlyn",3,["구인수의 격노검","크라켄의 분노","크라켄의 분노"]],["Sivir",2,["최후의 속삭임","붉은 덩굴정령","무한의 대검"]],["Tristana",2,[]],["Ashe",2,[]]],"e5":["Scuttlecrab","Sejuani","Rakan","Vi","Caitlyn"],"e7":["Scuttlecrab","Sejuani","Rakan","Vi","Caitlyn","Sivir","Tristana"],"c":"Caitlyn","t":"Scuttlecrab"},{"k":"56ff249a71b6c9fb56d7f51e6af95c9d7e8373d3","n":"사냥꾼 시비르 말파이트","d":"M","st":"f8","lv":"A","cond":false,"tip":"초반은 협곡야수로 넘기고 8레벨에서 니달리, 시비르, 말파이트를 2성으로 만듭니다.","b":[["Malphite",2,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Nidalee",2,["무한의 대검","쇼진의 창","스테락의 도전"]],["RekSai",2,[]],["Krug",2,[]],["AncientSentinel",2,[]],["Sivir",2,["무한의 대검","타격대의 철퇴","붉은 덩굴정령"]],["KogMaw",2,[]],["Cinderling",2,[]],["Ashe",2,[]]],"e5":["Scuttlecrab","Murkwolf","Krug","Cinderling","Pebbles"],"e7":["Malphite","Nidalee","RekSai","Krug","Sivir","KogMaw","Cinderling"],"c":"Sivir","t":"Malphite"},{"k":"f13e24999d4ad1d87cb7cda4442314181ab68984","n":"[유물] 마스터 이 렝가","d":"M","st":"r3","lv":"R3","cond":true,"tip":"초반에 마스터 이나 렝가가 나오고, 2-1 증강에서 유물이나 싸움꾼 상징을 얻었을 때 가는 덱입니다.","b":[["Krug",3,[]],["Sett",2,[]],["Yorick",2,[]],["Rengar",3,["구인수의 격노검","밤의 끝자락","거인의 결의"]],["Vi",3,["태양불꽃 망토","저녁갑주","워모그의 갑옷"]],["Nidalee",2,["무한의 대검","쇼진의 창","스테락의 도전"]],["MasterYi",3,["밤의 끝자락","구인수의 격노검","마법사의 최후"]]],"e5":["Yorick","MasterYi","Rengar","Karma","Gromp"],"e7":["Krug","Sett","Yorick","Rengar","Vi","Nidalee","MasterYi"],"c":"MasterYi","t":"Vi"},{"k":"efe61c83d4cd7114677a34af96cd680d0eac12e2","n":"엄호대 카시오페아","d":"M","st":"r3","lv":"R3","cond":false,"tip":"7레벨에서 카시오페아와 피들스틱을 3성으로 만드는 덱입니다. 관련 증강이나 유물이 있을 때 좋습니다.","b":[["Leona",2,[]],["Ornn",2,[]],["Shen",2,[]],["Lillia",2,[]],["Fiddlesticks",3,["태양불꽃 망토","이온 충격기","정령의 형상"]],["Rammus",3,["가고일 돌갑옷","워모그의 갑옷","굳건한 심장"]],["Soraka",2,[]],["Cassiopeia",3,["대천사의 지팡이","푸른 파수꾼","마법공학 총검"]]],"e5":["Ornn","Shen","Fiddlesticks","Leona","Cassiopeia"],"e7":["Leona","Ornn","Shen","Lillia","Fiddlesticks","Rammus","Cassiopeia"],"c":"Cassiopeia","t":"Rammus"},{"k":"396e3499455447e28d5e34295d40da2115c6bc3c","n":"나무정령 이즈리얼","d":"E","st":"f8","lv":"A","cond":false,"tip":"나무정령으로 초반부터 끝까지 가는 쉬운 덱입니다. 8레벨에서 이즈리얼과 소라카를 2성으로 만듭니다.","b":[["Taric",2,["가고일 돌갑옷","워모그의 갑옷","수호자의 맹세"]],["Hecarim",2,[]],["Alistar",2,[]],["Ornn",2,[]],["Gnar",2,["피바라기","거인의 결의","스테락의 도전"]],["Soraka",2,["쇼진의 창","라바돈의 죽음모자","대천사의 지팡이"]],["Ezreal",2,["죽음의 검","최후의 속삭임","쇼진의 창"]],["LeBlanc",2,[]],["Xayah",2,[]]],"e5":["Hecarim","Alistar","Ornn","LeBlanc","Xayah"],"e7":["Hecarim","Fiddlesticks","Alistar","Ornn","Rakan","LeBlanc","Xayah"],"c":"Ezreal","t":"Taric"},{"k":"19efa317818b88de5a967f024e1c7dadd358a2b9","n":"선봉대 아펠리오스","d":"M","st":"f8","lv":"B","cond":false,"tip":"8레벨에서 아펠리오스를 완성합니다. 초반에는 구인수의 격노검을 만들어 AD 기물에게 주세요.","b":[["Taric",2,["가고일 돌갑옷","워모그의 갑옷","굳건한 심장"]],["Diana",2,[]],["AncientSentinel",2,["수호자의 맹세","수호자의 맹세","적응형 투구"]],["Hecarim",2,[]],["Morgana",2,["모렐로노미콘","공허의 지팡이","대천사의 지팡이"]],["Brambleback",2,["밤의 끝자락","스테락의 도전","수은"]],["Aphelios",2,["구인수의 격노검","죽음의 검","무한의 대검"]],["Raptor",2,["최후의 속삭임"]],["Zyra",2,[]]],"e5":["Yorick","Ornn","Hecarim","Rakan","Xayah"],"e7":["Hecarim","Diana","AncientSentinel","Rakan","Brambleback","Aphelios","Raptor"],"c":"Aphelios","t":"Taric"},{"k":"c354d0ba9d2db669f8364837f6bd2048d707438b","n":"7협곡야수 장로 드래곤","d":"M","st":"f8","lv":"RIFT","cond":false,"tip":"협곡야수를 초반부터 모아 7개까지 맞추고 장로 드래곤으로 마무리합니다.","b":[["Krug",3,["가고일 돌갑옷","워모그의 갑옷","워모그의 갑옷"]],["TheElderDragon",2,["무한의 대검","최후의 속삭임","타격대의 철퇴"]],["Gnar",2,[]],["Taric",2,[]],["Brambleback",2,["밤의 끝자락","스테락의 도전","거인 학살자"]],["Murkwolf",2,[]],["AncientSentinel",2,[]],["Pebbles",3,["푸른 파수꾼","라바돈의 죽음모자","보석 건틀릿"]]],"e5":["Scuttlecrab","Krug","Murkwolf","Pebbles","Cinderling"],"e7":["Scuttlecrab","Krug","Brambleback","Murkwolf","AncientSentinel","Pebbles","Cinderling"],"c":"TheElderDragon","t":"Krug"},{"k":"fd963bf1015e28dc98b80a859b41fce0f147387d","n":"검은 가시 워윅 리롤","d":"M","st":"r2","lv":"R2","cond":false,"tip":"50골드를 모아 6레벨에서 워윅과 어스름늑대를 3성으로 만드는 덱입니다.","b":[["Malphite",2,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Warwick",3,["쇼진의 창","거인의 결의","스테락의 도전"]],["Brambleback",2,[]],["Murkwolf",3,["정의의 손길","밤의 끝자락","죽음의 검"]],["Krug",2,[]],["RekSai",2,[]],["Diana",2,[]],["Azir",2,["구인수의 격노검","모렐로노미콘","공허의 지팡이"]]],"e5":["RekSai","Warwick","Murkwolf","Krug","Azir"],"e7":["Malphite","Warwick","Brambleback","Murkwolf","Krug","RekSai","Azir"],"c":"Warwick","t":"Malphite"},{"k":"5aa6e80a3310784133b747c529d6b6e0899ec3d8","n":"카밀 아칼리 리롤","d":"M","st":"r1","lv":"R1","cond":false,"tip":"1코스트인 카밀, 아칼리, 오른, 바루스, 레오나를 3성으로 만듭니다. 초반에 2성이 잘 붙었을 때 좋습니다.","b":[["Ornn",3,["가고일 돌갑옷","워모그의 갑옷","크라운가드"]],["Varus",3,["쇼진의 창","최후의 속삭임","무한의 대검"]],["Camille",3,["무한의 대검","밤의 끝자락","스테락의 도전"]],["Akali",3,["보석 건틀릿","정의의 손길","밤의 끝자락"]],["Sejuani",2,[]],["Leona",3,[]],["Kayle",2,[]]],"e5":["Ornn","Varus","Camille","Akali","Leona"],"e7":["Ornn","Varus","Camille","Akali","Sejuani","Leona","Kayle"],"c":"Camille","t":"Ornn"},{"k":"e75f15fa75a321f00da05ba0eff3c05cc0c60c73","n":"햇빛 케일 (+나무정령)","d":"M","st":"r2","lv":"R2","cond":false,"tip":"6레벨 리롤로 케일, 세주아니, 레오나를 먼저 3성으로 만듭니다.","b":[["Leona",3,[]],["Rakan",3,[]],["Sejuani",3,[]],["Hecarim",2,[]],["Ornn",3,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Aphelios",2,[]],["Xayah",3,["구인수의 격노검","죽음의 검","붉은 덩굴정령"]],["Kayle",3,["구인수의 격노검","보석 건틀릿","라바돈의 죽음모자"]]],"e5":["Leona","Rakan","Ornn","Xayah","Kayle"],"e7":["Leona","Rakan","Sejuani","Hecarim","Ornn","Xayah","Kayle"],"c":"Kayle","t":"Ornn"},{"k":"e1f992db36c15cbcb562f40eff7a7732d55a4e57","n":"[상징] 치명적인꽃 베이가","d":"E","st":"r1","lv":"R1","cond":true,"tip":"치명적인 꽃 상징을 얻었을 때 가는 베이가 리롤 덱입니다.","b":[["RekSai",3,["가고일 돌갑옷","가고일 돌갑옷","워모그의 갑옷"]],["Gnar",2,["도적의 장갑"]],["Sett",2,[]],["Fiddlesticks",2,[]],["Kobuko",3,[]],["Rammus",2,[]],["Veigar",3,["푸른 파수꾼","보석 건틀릿","치명적인 꽃 상징"]],["Teemo",2,["모렐로노미콘","공허의 지팡이","쇼진의 창"]]],"e5":["RekSai","Fiddlesticks","Kobuko","Veigar","Teemo"],"e7":["RekSai","Fiddlesticks","Kobuko","Rammus","Veigar","Teemo","Tristana"],"c":"Veigar","t":"RekSai"},{"k":"b020a595c44ba352a9cc66b85a32ee31bad3bc5d","n":"[상징] 날렵이 요정 렝가","d":"M","st":"r3","lv":"R3","cond":true,"tip":"렝가에게 줄 상징이 있을 때 갑니다. 7레벨에서 람머스와 트리스타나를 3성으로 만듭니다.","b":[["Rakan",2,[]],["Taric",2,[]],["Lillia",2,[]],["Vi",3,["태양불꽃 망토","저녁갑주","정령의 형상"]],["Rammus",3,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Rengar",3,["요정 상징","날렵이 상징","거인의 결의"]],["Sivir",2,[]],["Tristana",3,["구인수의 격노검","마법공학 총검","거인 학살자"]]],"e5":["Rammus","Rengar","Rakan","Xayah","Tristana"],"e7":["Rakan","Lillia","Vi","Rammus","Rengar","Sivir","Tristana"],"c":"Rengar","t":"Vi"},{"k":"9087c98c4c47be155a8f3bd7442faf66cf4567c5","n":"[상징] 요정 트리스타나","d":"M","st":"r3","lv":"R3","cond":true,"tip":"요정 상징이 있을 때 갑니다. 7레벨에서 람머스와 트리스타나를 3성으로 만듭니다.","b":[["Kobuko",2,[]],["Rakan",2,[]],["Lillia",2,[]],["Vi",2,[]],["Rammus",3,["가고일 돌갑옷","워모그의 갑옷","정령의 형상"]],["Sivir",2,["요정 상징","최후의 속삭임","붉은 덩굴정령"]],["Tristana",3,["구인수의 격노검","마법공학 총검","거인 학살자"]]],"e5":["Ornn","Rakan","Rammus","Xayah","Tristana"],"e7":["Kobuko","Rakan","Lillia","Vi","Rammus","Sivir","Tristana"],"c":"Tristana","t":"Rammus"}];
+D.forEach(d=>{
+  d.ids=d.b.map(x=>x[0]);
+  const cnt={}; d.ids.forEach(id=>UM[id].traits.forEach(t=>cnt[t]=(cnt[t]||0)+1));
+  d.core=Object.keys(cnt).filter(t=>BP[t]&&cnt[t]>=BP[t]&&cnt[t]>=2).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3);
+  const order=id=>id===d.c?0:id===d.t?1:2;
+  d.holders=d.b.filter(x=>x[2].length).sort((a,b)=>order(a[0])-order(b[0]));
+});
+
+function allocate(holders, inv){
+  const have={...inv};
+  const rows=holders.map(h=>({id:h[0],items:h[2].map(n=>({n,r:I[n]||null,st:"none",need:null}))}));
+  const all=rows.flatMap(r=>r.items);
+  all.forEach(o=>{ if(!o.r){o.st="special";return;}
+    const [a,b]=o.r; const ok=a===b?(have[a]||0)>=2:(have[a]||0)>=1&&(have[b]||0)>=1;
+    if(ok){o.st="now";have[a]--;have[b]--;}});
+  all.forEach(o=>{ if(o.st!=="none")return; const [a,b]=o.r;
+    if((have[a]||0)>=1){o.st="half";o.need=b;have[a]--;}
+    else if((have[b]||0)>=1){o.st="half";o.need=a;have[b]--;}});
+  return rows;
+}
+function scoreDeck(d, owned, inv, easy, star2=new Set()){
+  const w=id=>star2.has(id)?2:1;
+  const hold=new Set(d.holders.map(h=>h[0]));
+  const inB=d.ids.filter(id=>owned.has(id));
+  const inE=d.e5.filter(id=>owned.has(id)&&!d.ids.includes(id));
+  const inM=d.e7.filter(id=>owned.has(id)&&!d.ids.includes(id)&&!d.e5.includes(id));
+  let s=0; inB.forEach(id=>{s+=(id===d.c?3 : hold.has(id)?2 : 1.5)*w(id);});
+  inE.forEach(id=>{s+=1.2*w(id);}); inM.forEach(id=>{s+=0.8*w(id);});
+  const seen=new Set([...d.ids,...d.e5,...d.e7]);
+  const near=[...owned].filter(id=>!seen.has(id)&&UM[id].traits.some(t=>d.core.includes(t)));
+  s+=Math.min(near.reduce((a,id)=>a+0.4*w(id),0),2);
+  const rows=allocate(d.holders,inv);
+  const car=(rows.find(r=>r.id===d.c)||{items:[]}).items;
+  const now=car.filter(o=>o.st==="now"), half=car.filter(o=>o.st==="half");
+  const others=rows.filter(r=>r.id!==d.c).flatMap(r=>r.items);
+  s+=now.length*1.5+half.length*0.5+Math.min(others.filter(o=>o.st==="now").length*0.7,1.4);
+  if(d.cond)s-=1;
+  if(easy){ if(d.d==="H")s-=1.5; if(d.d==="E")s+=0.5; }
+  return {d,s,inB,inE:inE.concat(inM),near,rows,now,half};
+}
+function recommend(owned, inv, easy, star2){
+  return D.map((d,i)=>({...scoreDeck(d,owned,inv,easy,star2),i})).sort((a,b)=>b.s-a.s||a.i-b.i);
+}
+
+// ---- icons: local files next to the page win; otherwise the CDN; if neither loads, letter tiles are shown.
+const IFILE={"적응형 투구":"AdaptiveHelm.png","보석 건틀릿":"ArcaneGauntlet.png","피바라기":"Bloodthirster.png","푸른 파수꾼":"BlueSentinel.png","덤불 조끼":"BrambleVest.png","크라운가드":"Crownguard.png","새벽심장":"Dawncore.png","용의 발톱":"DragonsClaw.png","저녁갑주":"Evenshroud.png","수호자의 맹세":"Fimbulwinter.png","거인 학살자":"GiantSlayer.png","타격대의 철퇴":"Guardbreaker.png","밤의 끝자락":"GuardianAngel.png","구인수의 격노검":"GuinsoosRageblade.png","정의의 손길":"HandofJustice.png","마법공학 총검":"HextechGunblade.png","무한의 대검":"InfinityEdge.png","이온 충격기":"IonicSpark.png","가고일 돌갑옷":"IronWill.png","최후의 속삭임":"LastWhisper.png","죽음의 검":"LordsEdge.png","대천사의 지팡이":"LudensEcho.png","모렐로노미콘":"Morellonomicon.png","내셔의 이빨":"NashorsTooth.png","수은":"Quicksilver.png","라바돈의 죽음모자":"RabadonsDeathcap.png","붉은 덩굴정령":"RedBuffItem.png","정령의 형상":"Redemption.png","크라켄의 분노":"RunaansHurricane.png","쇼진의 창":"SpearofShojin.png","굳건한 심장":"SteadfastHeart.png","스테락의 도전":"SteraksGage.png","태양불꽃 망토":"SunfireCape.png","도적의 장갑":"ThiefsGloves.png","거인의 결의":"TitansResolve.png","공허의 지팡이":"VoidStaff.png","워모그의 갑옷":"WarmogsArmor.png","마법사의 최후":"WitsEnd.png","요정 상징":"FaeEmblem.jpg","날렵이 상징":"SprykinEmblem.jpg","치명적인 꽃 상징":"FloraFatalisEmblem.jpg"};
+const CFILE={BF:"BFSword.png",Bow:"RecurveBow.png",Rod:"NeedlesslyLargeRod.png",Tear:"TearOfTheGoddess.png",Vest:"ChainVest.png",Cloak:"NegatronCloak.png",Belt:"GiantsBelt.png",Glove:"SparringGloves.png"};
+const CDN="https://cdn.lolchess.gg/";       // icons are loaded from LoLCHESS.GG's image server
+const REMOTE={"c/Akali.jpg":"upload/images/champions/Akali_1783676925-Akali.jpg","c/Camille.jpg":"upload/images/champions/Camille_1783677076-Camille.jpg","c/Cinderling.jpg":"upload/images/champions/Cinderling_1783677059-Cinderling.jpg","c/Karma.jpg":"upload/images/champions/Karma_1783677071-Karma.jpg","c/Kobuko.jpg":"upload/images/champions/Kobuko_1783677139-Kobuko.jpg","c/Leona.jpg":"upload/images/champions/Leona_1783676811-Leona.jpg","c/Ornn.jpg":"upload/images/champions/Ornn_1783676965-Ornn.jpg","c/Pebbles.jpg":"upload/images/champions/Pebbles_1783677606-Sentry.jpg","c/Rakan.jpg":"upload/images/champions/Rakan_1783676792-Rakan.jpg","c/RekSai.jpg":"upload/images/champions/RekSai_1783676815-Reksai.jpg","c/Varus.jpg":"upload/images/champions/Varus_1783676858-Varus.jpg","c/Veigar.jpg":"upload/images/champions/Veigar_1783676874-Veigar.jpg","c/Xayah.jpg":"upload/images/champions/Xayah_1783676988-Xayah.jpg","c/Yorick.jpg":"upload/images/champions/Yorick_1783676969-Yorick.jpg","c/Alistar.jpg":"upload/images/champions/Alistar_1783676943-Alistar.jpg","c/Caitlyn.jpg":"upload/images/champions/Caitlyn_1783677122-Caitlyn.jpg","c/Elise.jpg":"upload/images/champions/Elise_1783676960-Elise.jpg","c/Gromp.jpg":"upload/images/champions/Gromp_1783676782-Gromp.jpg","c/Kayle.jpg":"upload/images/champions/Kayle_1783677127-Kayle.jpg","c/LeBlanc.jpg":"upload/images/champions/LeBlanc_1783676828-Leblanc.jpg","c/Murkwolf.jpg":"upload/images/champions/Murkwolf_1783676955-MurkWolf.jpg","c/Scuttlecrab.jpg":"upload/images/champions/Scuttlecrab_1783676864-Scuttlecrab.jpg","c/Sejuani.jpg":"upload/images/champions/Sejuani_1783676879-Sejuani.jpg","c/Shen.jpg":"upload/images/champions/Shen_1783676895-Shen.jpg","c/Teemo.jpg":"upload/images/champions/Teemo_1783677154-Teemo.jpg","c/Warwick.jpg":"upload/images/champions/Warwick_1783676974-Warwick.jpg","c/Yunara.jpg":"upload/images/champions/Yunara_1783676979-Yunara.jpg","c/Azir.jpg":"upload/images/champions/Azir_1783676920-Azir.jpg","c/Cassiopeia.jpg":"upload/images/champions/Cassiopeia_1783677081-Cassiopeia.jpg","c/Diana.jpg":"upload/images/champions/Diana_1783676762-Diana.jpg","c/Fiddlesticks.jpg":"upload/images/champions/Fiddlesticks_1783677159-Fiddlesticks.jpg","c/Hecarim.jpg":"upload/images/champions/Hecarim_1783677165-Hecarim.jpg","c/KhaZix.jpg":"upload/images/champions/KhaZix_1783677087-Khazix.jpg","c/KogMaw.jpg":"upload/images/champions/KogMaw_1783677131-KogMaw.jpg","c/Krug.jpg":"upload/images/champions/Krug_1783676771-Krug.jpg","c/Raptor.jpg":"upload/images/champions/Raptor_1783677107-CrimsonRaptor.jpg","c/MasterYi.jpg":"upload/images/champions/MasterYi_1783676839-MasterYi.jpg","c/Rammus.jpg":"upload/images/champions/Rammus_1783676801-Rammus.jpg","c/Rengar.jpg":"upload/images/champions/Rengar_1783676823-Rengar.jpg","c/Tristana.jpg":"upload/images/champions/Tristana_1783677149-Tristana.jpg","c/Vi.jpg":"upload/images/champions/Vi_1783676869-VI.jpg","c/Ahri.jpg":"upload/images/champions/Ahri_1783676904-Ahri.jpg","c/Amumu.jpg":"upload/images/champions/Amumu_1783676909-Amumu.jpg","c/Aphelios.jpg":"upload/images/champions/Aphelios_1783676931-Aphelios.jpg","c/Brambleback.jpg":"upload/images/champions/Brambleback_1783677203-Brambleback.jpg","c/Ezreal.jpg":"upload/images/champions/Ezreal_1783676984-Ezreal.jpg","c/Lillia.jpg":"upload/images/champions/Lillia_1783676834-Lillia.jpg","c/Malphite.jpg":"upload/images/champions/Malphite_1783676849-Malphite.jpg","c/Morgana.jpg":"upload/images/champions/Morgana_1783676854-Morgana.jpg","c/Nidalee.jpg":"upload/images/champions/Nidalee_1783676756-Nidalee.jpg","c/AncientSentinel.jpg":"upload/images/champions/AncientSentinel_1783677366-Sentinel.jpg","c/Sett.jpg":"upload/images/champions/Sett_1783676885-Sett.jpg","c/Sivir.jpg":"upload/images/champions/Sivir_1783676900-Sivir.jpg","c/Soraka.jpg":"upload/images/champions/Soraka_1783676890-Soraka.jpg","c/Zyra.jpg":"upload/images/champions/Zyra_1783677045-Zyra.jpg","c/Alune.jpg":"upload/images/champions/Alune_1783676936-Alune.jpg","c/Ashe.jpg":"upload/images/champions/Ashe_1783676949-Ashe.jpg","c/Draven.jpg":"upload/images/champions/Draven_1783676787-Draven.jpg","c/TheElderDragon.jpg":"upload/images/champions/TheElderDragon_1783677052-ElderDragon.jpg","c/Gnar.jpg":"upload/images/champions/Gnar_1783676749-Gnar.jpg","c/Ivern.jpg":"upload/images/champions/Ivern_1783676914-Ivern.jpg","c/Kennen.jpg":"upload/images/champions/Kennen_1783677113-Kennen.jpg","c/Lux.jpg":"upload/images/champions/Lux_1783676806-Lux.jpg","c/Maokai.jpg":"upload/images/champions/Maokai_1783676844-Maokai.jpg","c/Taric.jpg":"upload/images/champions/Taric_1783677144-Taric.jpg","i/AdaptiveHelm.png":"upload/images/items/AdaptiveHelm_1693209131-6665_tank_t4_jakshotheprotean.png","i/ArcaneGauntlet.png":"upload/images/items/ArcaneGauntlet_1710227032-jeweled_guantlet.png","i/BFSword.png":"upload/images/items/BFSword_1658364277-1038.png","i/Bloodthirster.png":"upload/images/items/Bloodthirster_1710231772-bloodthirster.png","i/BlueSentinel.png":"images/tft/item/BlueBuff.png","i/BrambleVest.png":"upload/images/items/BrambleVest_1640058438.png","i/ChainVest.png":"upload/images/items/ChainVest_1640058945.png","i/Crownguard.png":"upload/images/items/Crownguard_1710227947-crownguard.png","i/Dawncore.png":"upload/images/items/PBEDawncore_1752038401-Dawncore.png","i/DragonsClaw.png":"upload/images/items/DragonsClaw_1640058416.png","i/Evenshroud.png":"upload/images/items/Evenshroud_1693041191-3001_support_lunari.png","i/Fimbulwinter.png":"upload/images/items/Fimbulwinter_1660869394-3119_wintersapproach.png","i/GiantsBelt.png":"upload/images/items/GiantsBelt_1658368751-1011.png","i/GiantSlayer.png":"upload/images/items/GiantSlayer_1670462997-giant_slayer.png","i/Guardbreaker.png":"upload/images/items/Guardbreaker_1710231640-stridebreaker.png","i/GuardianAngel.png":"upload/images/items/GuardianAngel_1643780049.png","i/GuinsoosRageblade.png":"upload/images/items/GuinsoosRageblade_1710231593-guinsoos_rageblade.png","i/HandofJustice.png":"upload/images/items/HandofJustice_1710227464-hand_of_justice.png","i/HextechGunblade.png":"upload/images/items/HextechGunblade_1640058876.png","i/InfinityEdge.png":"upload/images/items/InfinityEdge_1710231787-infinity_edge.png","i/IonicSpark.png":"upload/images/items/IonicSpark_1640059091.png","i/IronWill.png":"upload/images/items/IronWill_AnyIyxtEcc5fby5mgL1NNIwzm76wiG0yxwcPQ7nj.png","i/LastWhisper.png":"upload/images/items/LastWhisper_1710227918-last_whisper.png","i/LordsEdge.png":"upload/images/items/LordsEdge_1710227794-death_blade.png","i/LudensEcho.png":"upload/images/items/LudensEcho_1667202278-archangel_staff.png","i/Morellonomicon.png":"upload/images/items/Morellonomicon_1710231609-morellonomicon.png","i/NashorsTooth.png":"upload/images/items/NashorsTooth_1693041452-3115_mage_t3_nashorstooth.png","i/NeedlesslyLargeRod.png":"upload/images/items/NeedlesslyLargeRod_1640059008.png","i/NegatronCloak.png":"upload/images/items/NegatronCloak_1640059073.png","i/Quicksilver.png":"upload/images/items/Quicksilver_1710231779-quicksilver.png","i/RabadonsDeathcap.png":"upload/images/items/RabadonsDeathcap_1658368695-3089.png","i/RecurveBow.png":"upload/images/items/RecurveBow_1640058784.png","i/RedBuffItem.png":"upload/images/items/RedBuffItem_1700526699-redbuff.png","i/Redemption.png":"upload/images/items/Redemption_1748475217-5e0668acd02f73dfc316d1e02d2286f37149da08-512x512.png","i/RunaansHurricane.png":"upload/images/items/RunaansHurricane_1748474476-54e36c2efc36a585799d963fccb76e10f8d51da6-512x512.png","i/SparringGloves.png":"upload/images/items/SparringGloves_1640059055.png","i/SpearofShojin.png":"upload/images/items/SpearofShojin_1669258937-spear_of_shojin.png","i/SteadfastHeart.png":"upload/images/items/SteadfastHeart_1699383455-3084_tank_t4_heartsteel.png","i/SteraksGage.png":"upload/images/items/SteraksGage_1693041113-3053_steraks_gage.png","i/SunfireCape.png":"upload/images/items/SunfireCape_1640059158.png","i/TearOfTheGoddess.png":"upload/images/items/Tearofthegoddess_1640059037.png","i/ThiefsGloves.png":"upload/images/items/ThiefsGloves_9PTkdu1Iyw6L1voQbNlsP5U74TzF7suIeq5RQjbh.png","i/TitansResolve.png":"upload/images/items/TitansResolve_1640058512.png","i/VoidStaff.png":"upload/images/items/VoidStaff_1747207480-6f3e0c3861b876d768c4f9b501fbaabc585c3bc3-512x512.png","i/WarmogsArmor.png":"upload/images/items/WarmogsArmor_1710228144-warmogs_armor.png","i/WitsEnd.png":"upload/images/items/WitsEnd_1714029999-tft_item_artifact_witsend.png","i/FaeEmblem.jpg":"upload/images/items/FaeEmblem_1785291239-DA_18_EmblemFae.jpg","i/SprykinEmblem.jpg":"upload/images/items/SprykinEmblem_1785290927-DA_18_EmblemSprykin.jpg","i/FloraFatalisEmblem.jpg":"upload/images/items/FloraFatalisEmblem_1785482330-DA_18_EmblemFloraFatalis.jpg"};
+let IMGMODE="";                              // "" = no images, "local" = files next to the page, "remote" = CDN
+let HASIMG=false;
+const src=p=>IMGMODE==="local"?p:REMOTE[p]?CDN+REMOTE[p]:"";
+const img=p=>HASIMG&&src(p)?`<img src="${src(p)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
+const unitPt=(id,extra="")=>`<span class="pt">${esc(UM[id].ko[0])}${img("c/"+id+".jpg")}${extra}</span>`;
+const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}">${IFILE[n]?img("i/"+IFILE[n]):""}</span>`;
+const compIc=(c,sm)=>`<span class="ic${sm?" sm":""}">${img("i/"+CFILE[c])}</span>`;
+const recipe=r=>`${compIc(r[0],1)}${CM[r[0]]} + ${compIc(r[1],1)}${CM[r[1]]}`;
+
+const state={tog:new Set(),owned:new Set(["Karma","Yorick","Yunara"]),inv:{Rod:1,Tear:1},easy:true,example:true,star2:new Set(["Yorick"])};
+try{const raw=localStorage.getItem("tftguide"); if(raw){const p=JSON.parse(raw); state.owned=new Set((p.owned||[]).filter(id=>UM[id])); state.star2=new Set((p.star2||[]).filter(id=>state.owned.has(id))); state.inv=p.inv||{}; state.easy=p.easy!==false; state.example=false;}}catch(e){}
+function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...state.owned],star2:[...state.star2],inv:state.inv,easy:state.easy}));}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function renderUnits(){
+  const q=$("q").value.trim().replace(/\s/g,"");
+  $("unitgrid").innerHTML=[1,2,3,4,5].map(c=>{
+    const list=U.filter(u=>u.cost===c&&(!q||u.ko.replace(/\s/g,"").includes(q)));
+    if(!list.length)return "";
+    return `<div class="costrow"><div class="costtag t${c}">${c}코</div><div class="tiles">`+
+      list.map(u=>{const o=state.owned.has(u.id),s2=state.star2.has(u.id);
+        return `<button type="button" class="tile k${c}" data-u="${u.id}" aria-pressed="${o}" aria-label="${esc(u.ko)}${s2?" 2성":o?" 보유":""}" title="${esc(u.traits.join(" · "))}">${unitPt(u.id,s2?'<span class="bdg star">★★</span>':"")}<span>${esc(u.ko)}</span></button>`;}).join("")+`</div></div>`;
+  }).join("")||`<p class="meta">그 이름의 기물이 없습니다.</p>`;
+}
+function renderComps(){
+  $("compgrid").innerHTML=C.map(([id,ko,full])=>{const n=state.inv[id]||0;
+    return `<div class="comp${n?" has":""}">${compIc(id)}<span><b>${ko}</b><small>${full}</small></span><div class="step"><button type="button" data-c="${id}" data-d="-1" aria-label="${ko} 빼기"${n?"":" disabled"}>−</button><output>${n}</output><button type="button" data-c="${id}" data-d="1" aria-label="${ko} 더하기"${n>=20?" disabled":""}>+</button></div></div>`;}).join("");
+}
+function unitTag(id,role,goal){const u=UM[id],own=state.owned.has(id);
+  const b=(role?`<span class="bdg top">${role}</span>`:"")+(own&&state.star2.has(id)?'<span class="bdg star">★★</span>':goal===3?'<span class="bdg star">3성</span>':"");
+  return `<span class="tile k${u.cost}${own?" own":""}" title="${esc(u.ko)}${role?" · "+role:""}${goal===3?" · 3성 목표":""}">${unitPt(id,b)}<span>${esc(u.ko)}</span></span>`;}
+function itemRow(o,who){
+  const to=who?` <em>→ ${UM[who].ko}</em>`:"";
+  if(o.st==="special")return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${SPECIAL[o.n]||"조합 불가"}</small></span><span class="st none">특수</span></li>`;
+  const [cls,txt]=o.st==="now"?["now","지금 조합"]:o.st==="half"?["half",CM[o.need]+" 필요"]:["none","재료 없음"];
+  return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${recipe(o.r)}</small></span><span class="st ${cls}">${txt}</span></li>`;}
+function why(r){
+  const p=[], d=r.d, all=r.inB.concat(r.inE);
+  const s2=all.filter(id=>state.star2.has(id)).map(id=>UM[id].ko+(id===d.c?"(캐리)":id===d.t?"(탱커)":""));
+  if(s2.length)p.push(`이미 2성인 <b>${s2.join(", ")}</b>을(를) 그대로 씁니다.`);
+  if(r.inB.length)p.push(`<b>${r.inB.map(id=>UM[id].ko).join(", ")}</b>은(는) 완성 보드까지 갑니다.`);
+  if(r.inE.length)p.push(`<b>${r.inE.map(id=>UM[id].ko).join(", ")}</b>은(는) 초중반 보드에 들어갑니다.`);
+  if(r.inB.includes(d.c)&&!state.star2.has(d.c))p.push("캐리를 이미 갖고 있습니다.");
+  if(!all.length&&r.near.length)p.push(`<b>${r.near.map(id=>UM[id].ko).join(", ")}</b>의 특성이 이 덱과 겹칩니다.`);
+  if(r.now.length)p.push(`캐리 아이템 <b>${r.now.map(o=>o.n).join(", ")}</b>을(를) 바로 만들 수 있습니다.`);
+  else if(r.half.length)p.push("캐리 아이템 재료를 일부 갖고 있습니다.");
+  if(!p.length)p.push("겹치는 기물이나 재료가 아직 없습니다.");
+  return p;
+}
+function todo(r){
+  const d=r.d, miss=l=>l.filter(id=>!state.owned.has(id));
+  const role=id=>id===d.c?"캐리":id===d.t?"탱커":"";
+  let buy=miss(d.e5), stage="5레벨 보드";
+  if(!buy.length){buy=miss(d.e7);stage="7레벨 보드";}
+  if(!buy.length){buy=miss(d.ids);stage="완성 보드";}
+  const pick=st=>r.rows.flatMap(row=>row.items.filter(o=>o.st===st).map(o=>itemRow(o,row.id)));
+  const nowI=pick("now"), halfI=pick("half").slice(0,3);
+  const items=nowI.length?nowI.join(""):halfI.length?halfI.join("")
+    :`<li><span class="ic"></span><span class="it">아직 만들 핵심 아이템이 없습니다<small>「아이템 전체」에서 필요한 재료를 확인하세요</small></span><span class="st none">대기</span></li>`;
+  return `<div class="todo"><h3>지금 할 일</h3>
+    <div class="block"><span class="label">${buy.length?`상점에 보이면 사기 · ${stage}`:"기물은 다 모았습니다"}</span><div class="tiles">${buy.map(id=>unitTag(id,role(id))).join("")}</div></div>
+    <div class="block"><span class="label">아이템 만들기</span><ul class="items">${items}</ul></div></div>`;
+}
+function det(key,title,body,defOpen){const open=state.tog.has(key)?!defOpen:!!defOpen;
+  return `<details data-k="${key}" data-d="${defOpen?1:0}"${open?" open":""}><summary>${title}</summary><div>${body}</div></details>`;}
+function renderDecks(){
+  const res=recommend(state.owned,state.inv,state.easy,state.star2);
+  const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean);
+  const top=res.slice(0,3);
+  $("decks").innerHTML=(empty?`<p class="meta">아직 고른 것이 없어서 운영이 쉬운 덱부터 보여 줍니다.</p>`:"")+top.map((r,ix)=>{
+    const d=r.d, df=DIFF[d.d], first=ix===0;
+    const role=id=>id===d.c?"캐리":id===d.t?"탱커":"";
+    const board=d.b.slice().sort((a,b)=>UM[a[0]].cost-UM[b[0]].cost);
+    const boards=`<div class="boards">
+      <div class="block"><span class="label">초반 · 5레벨</span><div class="tiles">${d.e5.map(id=>unitTag(id,role(id))).join("")}</div></div>
+      <div class="block"><span class="label">중반 · 7레벨</span><div class="tiles">${d.e7.map(id=>unitTag(id,role(id))).join("")}</div></div>
+      <div class="block"><span class="label">완성</span><div class="tiles">${board.map(x=>unitTag(x[0],role(x[0]),x[1])).join("")}</div></div></div>
+      <p class="meta">초록색 테두리는 이미 가진 기물입니다.</p>`;
+    const items=`<div class="itemsgrid">${r.rows.map(row=>`<div class="block"><span class="holder k${UM[row.id].cost}">${unitPt(row.id)}${role(row.id)?role(row.id)+" · ":""}${UM[row.id].ko}</span><ul class="items">${row.items.map(o=>itemRow(o)).join("")}</ul></div>`).join("")}</div>`;
+    const lv=`<div class="lv">${LV[d.lv].map(([a,b])=>`<span><i>${a}</i>${b}레벨</span>`).join("")}</div>`;
+    const body=`<p class="meta">${d.tip}</p>
+      ${todo(r)}
+      ${det(d.k+"b","보드 단계별로 보기",boards,first)}
+      ${det(d.k+"i","아이템 전체 보기",items,first)}
+      ${det(d.k+"l","레벨업 타이밍",lv,first)}
+      <a class="guide" href="${BASE+d.k}?type=guide&hl=ko" target="_blank" rel="noopener">롤체지지에서 ${esc(d.n)} 공략 보기<span>배치 · 추천 증강 · 대체 아이템</span></a>`;
+    return `<article class="deck${first?" top":""}">
+      <div class="decktitle"><span class="rank">${ix+1}순위</span><span class="name">${esc(d.n)}</span>
+      <div class="tags"><span class="tag ${df[1]}">난이도 ${df[0]}</span><span class="tag">${STYLE[d.st]}</span>${d.cond?`<span class="tag hard">조건부</span>`:""}${d.core.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>
+      <ul class="whyl">${why(r).map(x=>`<li>${x}</li>`).join("")}</ul>
+      ${first?body:det(d.k+"m","이 덱 자세히 보기",body,false)}
+    </article>`;}).join("");
+  $("bartop").textContent=top[0].d.n;
+  $("barlabel").textContent=empty?"기물을 고르면 바뀝니다":"지금 1순위";
+}
+$("decks").addEventListener("toggle",e=>{const t=e.target,k=t.dataset&&t.dataset.k; if(!k)return; (t.open!==(t.dataset.d==="1"))?state.tog.add(k):state.tog.delete(k);},true);
+document.addEventListener("error",e=>{if(e.target&&e.target.tagName==="IMG")e.target.remove();},true);
+function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
+function touched(){ state.example=false; save(); }
+function clearExample(){ if(state.example){state.owned.clear();state.star2.clear();state.inv={};} }
+
+$("unitgrid").addEventListener("click",e=>{const b=e.target.closest("[data-u]"); if(!b)return; const id=b.dataset.u;
+  clearExample();
+  if(!state.owned.has(id))state.owned.add(id);
+  else if(!state.star2.has(id))state.star2.add(id);
+  else{state.owned.delete(id);state.star2.delete(id);}
+  touched(); renderAll();});
+$("compgrid").addEventListener("click",e=>{const b=e.target.closest("[data-c]"); if(!b)return;
+  clearExample();
+  const id=b.dataset.c; state.inv[id]=Math.max(0,Math.min(20,(state.inv[id]||0)+Number(b.dataset.d))); touched(); renderAll();});
+$("q").addEventListener("input",renderUnits);
+$("easy").addEventListener("change",e=>{state.easy=e.target.checked; save(); renderDecks();});
+$("reset").addEventListener("click",()=>{state.owned.clear();state.star2.clear();state.inv={};$("q").value="";touched();renderAll();});
+$("go").addEventListener("click",()=>$("results").scrollIntoView({block:"start"}));
+renderAll();
+(function probeImages(){
+  const use=m=>{IMGMODE=m;HASIMG=true;renderAll();};
+  const remote=()=>{const r=new Image(); r.referrerPolicy="no-referrer"; r.onload=()=>use("remote"); r.src=CDN+REMOTE["c/Akali.jpg"];};
+  const local=new Image(); local.onload=()=>use("local"); local.onerror=remote; local.src="c/Akali.jpg";
+})();
+</script>
+
+</body>
+</html>
