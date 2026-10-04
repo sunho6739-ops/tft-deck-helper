@@ -15,6 +15,7 @@
   --fg:#e9edf2; --muted:#98a4b5; --accent:#e8b84a; --accent-ink:#1c1505;
   --ok:#5fcf8e; --warn:#f0a35a;
   --c1:#8d99a8; --c2:#3fb56d; --c3:#3f8fe0; --c4:#b160e6; --c5:#e8b84a;
+  --s1:#d08a55; --s2:#dfe7f1; --s3:#ffd23f; --sink:#14181e;
   --display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
   --body:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
 }
@@ -24,6 +25,7 @@
   --fg:#18202b; --muted:#5b6778; --accent:#9a6b00; --accent-ink:#ffffff;
   --ok:#17804a; --warn:#b05a10;
   --c1:#6b7684; --c2:#1f8a4c; --c3:#1f6fc4; --c4:#8a3cc4; --c5:#9a6b00;
+  --s1:#a8642f; --s2:#55657a; --s3:#b88200; --sink:#ffffff;
 }}
 :root[data-theme="light"]{
   color-scheme:light;
@@ -31,6 +33,7 @@
   --fg:#18202b; --muted:#5b6778; --accent:#9a6b00; --accent-ink:#ffffff;
   --ok:#17804a; --warn:#b05a10;
   --c1:#6b7684; --c2:#1f8a4c; --c3:#1f6fc4; --c4:#8a3cc4; --c5:#9a6b00;
+  --s1:#a8642f; --s2:#55657a; --s3:#b88200; --sink:#ffffff;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;padding-inline:24px;padding-block:28px 40px}
@@ -65,12 +68,22 @@ input[type=search]{width:100%;background:var(--surface);border:1px solid var(--l
 .t1{color:var(--c1)}.t2{color:var(--c2)}.t3{color:var(--c3)}.t4{color:var(--c4)}.t5{color:var(--c5)}
 .bdg{position:absolute;left:0;right:0;bottom:0;font-family:var(--body);font-size:10px;font-weight:600;line-height:14px;background:var(--bg);color:var(--fg);opacity:.92}
 .bdg.star{color:var(--c5)}.bdg.ok{color:var(--ok)}.bdg.top{bottom:auto;top:0;color:var(--accent)}
-button.tile{opacity:.72}
-button.tile:hover{opacity:1}
-button.tile[aria-pressed="true"]{opacity:1;font-weight:600}
-button.tile[aria-pressed="true"] .pt{box-shadow:0 0 0 2px var(--fg)}
-.tile.own .pt{box-shadow:0 0 0 2px var(--ok)}
-.tile.own{color:var(--ok)}
+/* star states: 0 = not owned (grey), 1 = owned (bronze), 2 = two-star (silver), 3 = three-star (gold, glow) */
+button.tile.s0{color:var(--muted)}
+button.tile.s0 .pt{filter:grayscale(1) brightness(.62);opacity:.7}
+button.tile.s0:hover .pt{filter:none;opacity:1}
+.tile.s1,.tile.s2,.tile.s3{font-weight:600}
+.tile.s1 .pt{box-shadow:0 0 0 3px var(--s1)}
+.tile.s2 .pt{box-shadow:0 0 0 3px var(--s2)}
+.tile.s3 .pt{box-shadow:0 0 0 3px var(--s3),0 0 14px 3px var(--s3)}
+.tile.s1{color:var(--s1)}.tile.s2{color:var(--s2)}.tile.s3{color:var(--s3)}
+.bdg.lvb{opacity:1;color:var(--sink);font-size:11px;line-height:15px;letter-spacing:-1px}
+.s1 .bdg.lvb{background:var(--s1)}.s2 .bdg.lvb{background:var(--s2)}.s3 .bdg.lvb{background:var(--s3)}
+.bdg.goal{color:var(--s3)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block;background:var(--raised)}
+.legend .l1{box-shadow:0 0 0 2px var(--s1);background:var(--s1)}.legend .l2{box-shadow:0 0 0 2px var(--s2);background:var(--s2)}.legend .l3{box-shadow:0 0 0 2px var(--s3),0 0 8px 2px var(--s3);background:var(--s3)}
 /* components */
 .comps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:520px){.comps{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -157,7 +170,8 @@ a{color:var(--accent)}
         <button class="link" id="reset" type="button">전부 지우기</button>
       </div>
       <p class="example" id="exnote">예시로 몇 개 골라 둔 상태입니다. 기물을 누르면 예시가 지워지고 내 선택으로 바뀝니다.</p>
-      <p class="meta">한 번 누르면 보유, 두 번 누르면 2성(★★), 세 번 누르면 해제.</p>
+      <p class="meta">누를 때마다 보유 → 2성 → 3성 → 해제 순서로 바뀝니다.</p>
+      <div class="legend"><span><i></i>없음</span><span><i class="l1"></i>보유 ★</span><span><i class="l2"></i>2성 ★★</span><span><i class="l3"></i>3성 ★★★</span></div>
       <input type="search" id="q" placeholder="기물 이름 검색 (예: 아무무)" aria-label="기물 이름 검색">
       <div id="unitgrid" style="display:flex;flex-direction:column;gap:10px"></div>
     </section>
@@ -189,7 +203,7 @@ a{color:var(--accent)}
       </details>
       <details>
         <summary>이 추천은 어떻게 계산하나요</summary>
-        <p style="margin-top:10px;color:var(--muted)">가진 기물이 덱의 5레벨, 7레벨, 완성 보드에 얼마나 들어가는지, 덱의 주요 특성과 얼마나 겹치는지, 가진 재료로 캐리와 탱커 아이템을 만들 수 있는지를 점수로 합칩니다. 캐리를 이미 가지고 있으면 점수가 더 크고, 2성인 기물은 두 배로 칩니다. 상징이나 유물이 있어야 하는 조건부 덱은 점수를 조금 낮춥니다. 덱 30개의 보드, 아이템, 난이도, 레벨업 타이밍은 <a href="https://lolchess.gg/meta?hl=ko">롤체지지 추천 메타</a>의 덱별 공략에서 가져왔고, 덱 설명 한 줄은 그 공략을 요약한 것입니다. 패치가 바뀌면 데이터를 갱신해야 합니다. 기물과 아이템 이미지는 롤체지지 이미지 서버에서 불러옵니다.</p>
+        <p style="margin-top:10px;color:var(--muted)">가진 기물이 덱의 5레벨, 7레벨, 완성 보드에 얼마나 들어가는지, 덱의 주요 특성과 얼마나 겹치는지, 가진 재료로 캐리와 탱커 아이템을 만들 수 있는지를 점수로 합칩니다. 캐리를 이미 가지고 있으면 점수가 더 크고, 2성인 기물은 두 배, 3성인 기물은 세 배로 칩니다. 상징이나 유물이 있어야 하는 조건부 덱은 점수를 조금 낮춥니다. 덱 30개의 보드, 아이템, 난이도, 레벨업 타이밍은 <a href="https://lolchess.gg/meta?hl=ko">롤체지지 추천 메타</a>의 덱별 공략에서 가져왔고, 덱 설명 한 줄은 그 공략을 요약한 것입니다. 패치가 바뀌면 데이터를 갱신해야 합니다. 기물과 아이템 이미지는 롤체지지 이미지 서버에서 불러옵니다.</p>
       </details>
     </section>
   </div>
@@ -259,8 +273,8 @@ function allocate(holders, inv){
     else if((have[b]||0)>=1){o.st="half";o.need=a;have[b]--;}});
   return rows;
 }
-function scoreDeck(d, owned, inv, easy, star2=new Set()){
-  const w=id=>star2.has(id)?2:1;
+function scoreDeck(d, owned, inv, easy, star={}){
+  const w=id=>star[id]||1;
   const hold=new Set(d.holders.map(h=>h[0]));
   const inB=d.ids.filter(id=>owned.has(id));
   const inE=d.e5.filter(id=>owned.has(id)&&!d.ids.includes(id));
@@ -279,8 +293,8 @@ function scoreDeck(d, owned, inv, easy, star2=new Set()){
   if(easy){ if(d.d==="H")s-=1.5; if(d.d==="E")s+=0.5; }
   return {d,s,inB,inE:inE.concat(inM),near,rows,now,half};
 }
-function recommend(owned, inv, easy, star2){
-  return D.map((d,i)=>({...scoreDeck(d,owned,inv,easy,star2),i})).sort((a,b)=>b.s-a.s||a.i-b.i);
+function recommend(owned, inv, easy, star){
+  return D.map((d,i)=>({...scoreDeck(d,owned,inv,easy,star),i})).sort((a,b)=>b.s-a.s||a.i-b.i);
 }
 
 // ---- icons: local files next to the page win; otherwise the CDN; if neither loads, letter tiles are shown.
@@ -297,9 +311,12 @@ const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}">${IFILE[n]?img("i/"+IFILE[n
 const compIc=(c,sm)=>`<span class="ic${sm?" sm":""}">${img("i/"+CFILE[c])}</span>`;
 const recipe=r=>`${compIc(r[0],1)}${CM[r[0]]} + ${compIc(r[1],1)}${CM[r[1]]}`;
 
-const state={tog:new Set(),owned:new Set(["Karma","Yorick","Yunara"]),inv:{Rod:1,Tear:1},easy:true,example:true,star2:new Set(["Yorick"])};
-try{const raw=localStorage.getItem("tftguide"); if(raw){const p=JSON.parse(raw); state.owned=new Set((p.owned||[]).filter(id=>UM[id])); state.star2=new Set((p.star2||[]).filter(id=>state.owned.has(id))); state.inv=p.inv||{}; state.easy=p.easy!==false; state.example=false;}}catch(e){}
-function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...state.owned],star2:[...state.star2],inv:state.inv,easy:state.easy}));}catch(e){}}
+const state={tog:new Set(),owned:new Set(["Karma","Yorick","Yunara"]),inv:{Rod:1,Tear:1},easy:true,example:true,lv:{Yorick:2,Karma:3}};
+const LVL=id=>state.owned.has(id)?(state.lv[id]||1):0;
+const STARS=["","★","★★","★★★"];
+const lvBadge=id=>LVL(id)?`<span class="bdg lvb">${STARS[LVL(id)]}</span>`:"";
+try{const raw=localStorage.getItem("tftguide"); if(raw){const p=JSON.parse(raw); state.owned=new Set((p.owned||[]).filter(id=>UM[id])); state.lv={}; (p.star2||[]).forEach(id=>{if(state.owned.has(id))state.lv[id]=2;}); Object.entries(p.lv||{}).forEach(([id,v])=>{if(state.owned.has(id)&&(v===2||v===3))state.lv[id]=v;}); state.inv=p.inv||{}; state.easy=p.easy!==false; state.example=false;}}catch(e){}
+function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...state.owned],lv:state.lv,inv:state.inv,easy:state.easy}));}catch(e){}}
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -309,17 +326,17 @@ function renderUnits(){
     const list=U.filter(u=>u.cost===c&&(!q||u.ko.replace(/\s/g,"").includes(q)));
     if(!list.length)return "";
     return `<div class="costrow"><div class="costtag t${c}">${c}코</div><div class="tiles">`+
-      list.map(u=>{const o=state.owned.has(u.id),s2=state.star2.has(u.id);
-        return `<button type="button" class="tile k${c}" data-u="${u.id}" aria-pressed="${o}" aria-label="${esc(u.ko)}${s2?" 2성":o?" 보유":""}" title="${esc(u.traits.join(" · "))}">${unitPt(u.id,s2?'<span class="bdg star">★★</span>':"")}<span>${esc(u.ko)}</span></button>`;}).join("")+`</div></div>`;
+      list.map(u=>{const L=LVL(u.id);
+        return `<button type="button" class="tile k${c} s${L}" data-u="${u.id}" aria-pressed="${L>0}" aria-label="${esc(u.ko)}${L>1?" "+L+"성":L?" 보유":""}" title="${esc(u.traits.join(" · "))}">${unitPt(u.id,lvBadge(u.id))}<span>${esc(u.ko)}</span></button>`;}).join("")+`</div></div>`;
   }).join("")||`<p class="meta">그 이름의 기물이 없습니다.</p>`;
 }
 function renderComps(){
   $("compgrid").innerHTML=C.map(([id,ko,full])=>{const n=state.inv[id]||0;
     return `<div class="comp${n?" has":""}">${compIc(id)}<span><b>${ko}</b><small>${full}</small></span><div class="step"><button type="button" data-c="${id}" data-d="-1" aria-label="${ko} 빼기"${n?"":" disabled"}>−</button><output>${n}</output><button type="button" data-c="${id}" data-d="1" aria-label="${ko} 더하기"${n>=20?" disabled":""}>+</button></div></div>`;}).join("");
 }
-function unitTag(id,role,goal){const u=UM[id],own=state.owned.has(id);
-  const b=(role?`<span class="bdg top">${role}</span>`:"")+(own&&state.star2.has(id)?'<span class="bdg star">★★</span>':goal===3?'<span class="bdg star">3성</span>':"");
-  return `<span class="tile k${u.cost}${own?" own":""}" title="${esc(u.ko)}${role?" · "+role:""}${goal===3?" · 3성 목표":""}">${unitPt(id,b)}<span>${esc(u.ko)}</span></span>`;}
+function unitTag(id,role,goal){const u=UM[id],L=LVL(id);
+  const b=(role?`<span class="bdg top">${role}</span>`:"")+(L?lvBadge(id):goal===3?'<span class="bdg goal">3성 목표</span>':"");
+  return `<span class="tile k${u.cost}${L?" s"+L:""}" title="${esc(u.ko)}${role?" · "+role:""}${goal===3?" · 3성 목표":""}">${unitPt(id,b)}<span>${esc(u.ko)}</span></span>`;}
 function itemRow(o,who){
   const to=who?` <em>→ ${UM[who].ko}</em>`:"";
   if(o.st==="special")return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${SPECIAL[o.n]||"조합 불가"}</small></span><span class="st none">특수</span></li>`;
@@ -327,11 +344,11 @@ function itemRow(o,who){
   return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${recipe(o.r)}</small></span><span class="st ${cls}">${txt}</span></li>`;}
 function why(r){
   const p=[], d=r.d, all=r.inB.concat(r.inE);
-  const s2=all.filter(id=>state.star2.has(id)).map(id=>UM[id].ko+(id===d.c?"(캐리)":id===d.t?"(탱커)":""));
-  if(s2.length)p.push(`이미 2성인 <b>${s2.join(", ")}</b>을(를) 그대로 씁니다.`);
+  const up=all.filter(id=>state.lv[id]).map(id=>UM[id].ko+" "+state.lv[id]+"성"+(id===d.c?"(캐리)":id===d.t?"(탱커)":""));
+  if(up.length)p.push(`이미 키운 <b>${up.join(", ")}</b>을(를) 그대로 씁니다.`);
   if(r.inB.length)p.push(`<b>${r.inB.map(id=>UM[id].ko).join(", ")}</b>은(는) 완성 보드까지 갑니다.`);
   if(r.inE.length)p.push(`<b>${r.inE.map(id=>UM[id].ko).join(", ")}</b>은(는) 초중반 보드에 들어갑니다.`);
-  if(r.inB.includes(d.c)&&!state.star2.has(d.c))p.push("캐리를 이미 갖고 있습니다.");
+  if(r.inB.includes(d.c)&&!state.lv[d.c])p.push("캐리를 이미 갖고 있습니다.");
   if(!all.length&&r.near.length)p.push(`<b>${r.near.map(id=>UM[id].ko).join(", ")}</b>의 특성이 이 덱과 겹칩니다.`);
   if(r.now.length)p.push(`캐리 아이템 <b>${r.now.map(o=>o.n).join(", ")}</b>을(를) 바로 만들 수 있습니다.`);
   else if(r.half.length)p.push("캐리 아이템 재료를 일부 갖고 있습니다.");
@@ -355,7 +372,7 @@ function todo(r){
 function det(key,title,body,defOpen){const open=state.tog.has(key)?!defOpen:!!defOpen;
   return `<details data-k="${key}" data-d="${defOpen?1:0}"${open?" open":""}><summary>${title}</summary><div>${body}</div></details>`;}
 function renderDecks(){
-  const res=recommend(state.owned,state.inv,state.easy,state.star2);
+  const res=recommend(state.owned,state.inv,state.easy,state.lv);
   const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean);
   const top=res.slice(0,3);
   $("decks").innerHTML=(empty?`<p class="meta">아직 고른 것이 없어서 운영이 쉬운 덱부터 보여 줍니다.</p>`:"")+top.map((r,ix)=>{
@@ -366,7 +383,7 @@ function renderDecks(){
       <div class="block"><span class="label">초반 · 5레벨</span><div class="tiles">${d.e5.map(id=>unitTag(id,role(id))).join("")}</div></div>
       <div class="block"><span class="label">중반 · 7레벨</span><div class="tiles">${d.e7.map(id=>unitTag(id,role(id))).join("")}</div></div>
       <div class="block"><span class="label">완성</span><div class="tiles">${board.map(x=>unitTag(x[0],role(x[0]),x[1])).join("")}</div></div></div>
-      <p class="meta">초록색 테두리는 이미 가진 기물입니다.</p>`;
+      <p class="meta">별 띠가 붙은 기물은 이미 가진 기물입니다. 구리색은 1성, 은색은 2성, 금색은 3성입니다.</p>`;
     const items=`<div class="itemsgrid">${r.rows.map(row=>`<div class="block"><span class="holder k${UM[row.id].cost}">${unitPt(row.id)}${role(row.id)?role(row.id)+" · ":""}${UM[row.id].ko}</span><ul class="items">${row.items.map(o=>itemRow(o)).join("")}</ul></div>`).join("")}</div>`;
     const lv=`<div class="lv">${LV[d.lv].map(([a,b])=>`<span><i>${a}</i>${b}레벨</span>`).join("")}</div>`;
     const body=`<p class="meta">${d.tip}</p>
@@ -388,20 +405,21 @@ $("decks").addEventListener("toggle",e=>{const t=e.target,k=t.dataset&&t.dataset
 document.addEventListener("error",e=>{if(e.target&&e.target.tagName==="IMG")e.target.remove();},true);
 function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
 function touched(){ state.example=false; save(); }
-function clearExample(){ if(state.example){state.owned.clear();state.star2.clear();state.inv={};} }
+function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
 
 $("unitgrid").addEventListener("click",e=>{const b=e.target.closest("[data-u]"); if(!b)return; const id=b.dataset.u;
   clearExample();
   if(!state.owned.has(id))state.owned.add(id);
-  else if(!state.star2.has(id))state.star2.add(id);
-  else{state.owned.delete(id);state.star2.delete(id);}
+  else if(!state.lv[id])state.lv[id]=2;
+  else if(state.lv[id]===2)state.lv[id]=3;
+  else{state.owned.delete(id);delete state.lv[id];}
   touched(); renderAll();});
 $("compgrid").addEventListener("click",e=>{const b=e.target.closest("[data-c]"); if(!b)return;
   clearExample();
   const id=b.dataset.c; state.inv[id]=Math.max(0,Math.min(20,(state.inv[id]||0)+Number(b.dataset.d))); touched(); renderAll();});
 $("q").addEventListener("input",renderUnits);
 $("easy").addEventListener("change",e=>{state.easy=e.target.checked; save(); renderDecks();});
-$("reset").addEventListener("click",()=>{state.owned.clear();state.star2.clear();state.inv={};$("q").value="";touched();renderAll();});
+$("reset").addEventListener("click",()=>{state.owned.clear();state.lv={};state.inv={};$("q").value="";touched();renderAll();});
 $("go").addEventListener("click",()=>$("results").scrollIntoView({block:"start"}));
 renderAll();
 (function probeImages(){
