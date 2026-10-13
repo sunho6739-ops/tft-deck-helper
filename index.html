@@ -1008,7 +1008,7 @@ const TIER=["실버","골드","프리즘"];
 const tierp=a=>`<span class="tierp a${a.t}">${TIER[a.t]}</span>`;
 const dkb=k=>{const d=D.find(x=>x.k===k); return d?`<button type="button" class="dk" data-open="${k}">${esc(d.n)}</button>`:"";};
 // augments that decide the deck: picking them means going this deck (trait/unit-specific augments)
-const AUGFIX={"일인자":["b07fb3b9"],"종결자 협곡야수":["f41b5f58"],"흡수하는 꽃":["e1f992db","efe61c83"],"아이템 추출":["fd963bf1","53129bec"],"작은 털뭉치 친구":["e1f992db","7365c6b0"]};
+const AUGFIX={"일인자":["b07fb3b9"],"종결자 협곡야수":["f41b5f58"],"흡수하는 꽃":["e1f992db","efe61c83"],"아이템 추출":["fd963bf1","53129bec"],"작은 털뭉치 친구":["7365c6b0","f7cbb31f","e1f992db"]};
 // carry damage type of a deck, from the carry's item build (a few carries overridden by hand)
 const CTYPE_OVR={KhaZix:"AP",Kayle:"AP"};
 const APIT=new Set(["라바돈의 죽음모자","대천사의 지팡이","보석 건틀릿","푸른 파수꾼","모렐로노미콘","공허의 지팡이","마법공학 총검","새벽심장"]);
@@ -1017,7 +1017,7 @@ const deckType=d=>{ if(CTYPE_OVR[d.c])return CTYPE_OVR[d.c]; const it=(d.b.find(
 const AUGCLS={};
 function augClass(n){
   if(AUGCLS[n])return AUGCLS[n];
-  const fx=AUGFIX[n]; if(fx)return AUGCLS[n]={kind:"fix",label:"확정",decks:D.filter(d=>fx.some(k=>d.k.startsWith(k))).map(d=>d.k)};
+  const fx=AUGFIX[n]; if(fx)return AUGCLS[n]={kind:"fix",label:"확정",decks:D.filter(d=>fx.some(k=>d.k.startsWith(k))).sort((a,b)=>(!!a.cond-!!b.cond)||fx.findIndex(k=>a.k.startsWith(k))-fx.findIndex(k=>b.k.startsWith(k))).map(d=>d.k)};
   const t=(ATIP[n]||["",""])[1]; let sel=null,label="";
   if(/1~3코스트 리롤/.test(t)){sel=d=>d.st[0]==="r";label="저코 리롤";}
   else if(/1코스트 리롤/.test(t)){sel=d=>d.st==="r1";label="1코 리롤";}
