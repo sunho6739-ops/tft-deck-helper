@@ -164,6 +164,17 @@ button.tile.sp0{color:var(--muted)}
 .xhead h3{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.2}
 .ichip{display:inline-flex;align-items:center;gap:5px;cursor:help;white-space:nowrap}
 .ichip .ic{flex:none}
+.egrid{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:6px;max-width:720px}
+.egrid .eh{font-family:var(--display);font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;padding:4px}
+.egrid .ec{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:14px;white-space:nowrap}
+.egrid button.ecell{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;text-align:left;min-width:0}
+.egrid button.ecell:hover{border-color:var(--accent)}
+.egrid button.ecell.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.egrid .ecell b{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.egrid .ecell .xv{margin-left:auto}
+.egrid .ecell.top b{color:var(--accent)}
+@media (max-width:520px){.egrid .ecell .xv{display:none}.egrid .ec{padding:6px 2px;font-size:13px}}
+.tipbox{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(92vw,520px);background:var(--fg);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;line-height:1.5;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -421,6 +432,8 @@ a{color:var(--accent)}
       <div class="head"><h2>상징이 나왔을 때</h2><button class="link" type="button" data-spclear="emb">선택 지우기</button></div>
       <p class="lede">가진 상징을 누르면 추천 덱에 반영되고, 아래 설명에서도 맨 위로 올라옵니다. 덱 이름을 누르면 그 덱이 「덱 추천」 맨 위에 고정됩니다.</p>
       <div class="seg"><button type="button" data-xsort="win" aria-pressed="true">승률 높은 순 · 1등 비율</button><button type="button" data-xsort="avg" aria-pressed="false">평균 등수 순</button></div>
+      <div class="block"><span class="label">상징 조합표 · 재료 + 뒤집개/프라이팬</span><div class="egrid" id="egrid"></div>
+        <p class="meta">칸을 누르면 그 상징을 가진 것으로 표시됩니다. 퍼센트는 이번 패치 그 상징을 든 판의 1등 비율이고, 금색 이름은 1등 비율 상위 5개입니다. 엄호대·악의 여단·치명적인 꽃·전쟁기계 상징은 조합할 수 없어 증강이나 보상으로만 얻습니다.</p></div>
       <div class="tiles xpick" id="xp-emb"></div>
       <p class="meta">아이콘 위 숫자는 순위, 아래 숫자는 그 아이템을 든 기물의 수치입니다. 롤체지지 아이템 통계(마스터 이상, 패치 18.4b 최근 2일, 약 6만 3천 판) 기준입니다.</p>
       <input type="search" id="xq-emb" placeholder="상징·기물 이름 검색 (예: 처형자, 애쉬)" aria-label="상징 검색" style="max-width:460px">
@@ -1028,7 +1041,23 @@ $("tab-patch").addEventListener("click",e=>{
   const v=e.target.closest("[data-pv]"); if(v){PATCH=PATCHES[+v.dataset.pv]; renderPatch(); return;}
   const b=e.target.closest("[data-pdir]"); if(b){state.pdir=b.dataset.pdir; renderPatch();}
 });
-function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
+// emblem recipe grid: component rows x (spatula, frying pan) columns
+function renderEGrid(){
+  const COMP=Object.fromEntries(C.map(c=>[c[1],c[0]])); const cells={};
+  EMBL.forEach(([k,tr,rc])=>{ if(!rc)return; const [a,b]=rc.split(" + "); cells[COMP[a]+"|"+b]={k,tr}; });
+  const ranked=EMBL.map(e=>e[0]).filter(k=>ISTAT[k]).sort((a,b)=>ISTAT[b][2]-ISTAT[a][2]).slice(0,5);
+  const cell=c=>{ if(!c)return '<span class="ec meta">-</span>'; const st=ISTAT[c.k], own=state.sp.has(c.k);
+    return `<button type="button" class="ecell${own?" on":""}${ranked.includes(c.k)?" top":""}" data-sp="${c.k}" aria-pressed="${own}" title="${esc(c.tr)} 상징 · ${esc((EMBTIP[c.tr]||"").slice(0,80))}"><span class="ic sm">${img("x/"+c.k)}</span><b>${esc(c.tr)}</b>${st?`<span class="xv">${st[2].toFixed(1)}%</span>`:""}</button>`; };
+  $("egrid").innerHTML='<span class="eh"></span><span class="eh">+ 뒤집개</span><span class="eh">+ 프라이팬</span>'+
+    C.map(c=>`<span class="ec">${compIc(c[0],1)}<span class="nm">${esc(c[1])}</span></span>${cell(cells[c[0]+"|뒤집개"])}${cell(cells[c[0]+"|프라이팬"])}`).join("");
+}
+// touch screens have no hover: tapping anything with a hover description shows it for a moment
+let tipT=null;
+document.addEventListener("click",e=>{ if(!(window.matchMedia&&matchMedia("(hover: none)").matches))return;
+  const t=e.target.closest(".ichip,.ic[title]"); if(!t||!t.title)return;
+  let box=document.querySelector(".tipbox"); if(!box){box=document.createElement("div"); box.className="tipbox"; box.setAttribute("role","status"); document.body.appendChild(box);}
+  box.textContent=t.title; box.hidden=false; clearTimeout(tipT); tipT=setTimeout(()=>{box.hidden=true;},3500); });
+function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
 function touched(){ state.example=false; save(); }
 function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
 
