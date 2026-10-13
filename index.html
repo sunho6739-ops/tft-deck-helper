@@ -403,7 +403,7 @@ a{color:var(--accent)}
       <p class="example" id="exnote">예시로 몇 개 골라 둔 상태입니다. 기물을 누르면 예시가 지워지고 내 선택으로 바뀝니다.</p>
       <p class="meta">누를 때마다 보유 → 2성 → 3성 → 해제 순서로 바뀝니다. 모서리의 ×를 누르면 바로 뺍니다.</p>
       <div class="legend"><span><i></i>없음</span><span><i class="l1"></i>보유 ★</span><span><i class="l2"></i>2성 ★★</span><span><i class="l3"></i>3성 ★★★</span></div>
-      <input type="search" id="q" placeholder="기물 이름 검색 (예: 아무무)" aria-label="기물 이름 검색">
+      <input type="search" id="q" placeholder="기물·특성 검색 (예: 아무무, ㅇㅁㅁ, 선봉대)" aria-label="기물 이름 검색">
       <div id="unitgrid" style="display:flex;flex-direction:column;gap:10px"></div>
     </section>
     <section aria-labelledby="h-comp">
@@ -465,7 +465,7 @@ a{color:var(--accent)}
         <p class="meta">칸을 누르면 그 상징을 가진 것으로 표시됩니다. 퍼센트는 이번 패치 그 상징을 든 판의 1등 비율이고, 금색 이름은 1등 비율 상위 5개입니다. 엄호대·악의 여단·치명적인 꽃·전쟁기계 상징은 조합할 수 없어 증강이나 보상으로만 얻습니다.</p></div>
       <div class="tiles xpick" id="xp-emb"></div>
       <p class="meta">아이콘 위 숫자는 순위, 아래 숫자는 그 아이템을 든 기물의 수치입니다. 롤체지지 아이템 통계(마스터 이상, 패치 18.4b 최근 2일, 약 6만 3천 판) 기준입니다.</p>
-      <input type="search" id="xq-emb" placeholder="상징·기물 이름 검색 (예: 처형자, 애쉬)" aria-label="상징 검색" style="max-width:460px">
+      <input type="search" id="xq-emb" placeholder="상징·기물 검색 (예: 처형자, ㅊㅎㅈ, 애쉬)" aria-label="상징 검색" style="max-width:460px">
       <div class="legend"><span><b class="st now">통계</b>롤체지지 통계에 나온 조합과 많이 든 기물</span><span><b class="st half">요약</b>롤체지지 챔피언 요약 덱</span><span><b class="st half">주요</b>덱 공략의 주요 아이템</span><span><b class="st none">대체</b>덱 공략의 대체 아이템</span></div>
     </section>
     <section><div class="xgrid" id="xc-emb"></div>
@@ -478,7 +478,7 @@ a{color:var(--accent)}
       <div class="seg"><button type="button" data-xsort="win" aria-pressed="true">승률 높은 순 · 1등 비율</button><button type="button" data-xsort="avg" aria-pressed="false">평균 등수 순</button></div>
       <div class="tiles xpick" id="xp-art"></div>
       <p class="meta">아이콘 위 숫자는 순위, 아래 숫자는 그 아이템을 든 기물의 수치입니다. 롤체지지 아이템 통계(마스터 이상, 패치 18.4b 최근 2일, 약 6만 3천 판) 기준입니다.</p>
-      <input type="search" id="xq-art" placeholder="유물·기물 이름 검색 (예: 마나자네, 베이가)" aria-label="유물 검색" style="max-width:460px">
+      <input type="search" id="xq-art" placeholder="유물·기물 검색 (예: 마나자네, ㅁㄴㅈㄴ)" aria-label="유물 검색" style="max-width:460px">
       <div class="legend"><span><b class="st now">통계</b>롤체지지 통계에 나온 조합과 많이 든 기물</span><span><b class="st half">요약</b>롤체지지 챔피언 요약 덱</span><span><b class="st half">주요</b>덱 공략의 주요 아이템</span><span><b class="st none">대체</b>덱 공략의 대체 아이템</span></div>
     </section>
     <section><div class="xgrid" id="xc-art"></div>
@@ -500,7 +500,7 @@ a{color:var(--accent)}
     <section>
       <div class="head"><h2>증강별 추천 덱</h2></div>
       <div class="seg" id="augtier"><button type="button" data-atier="all" aria-pressed="true">전체</button><button type="button" data-atier="0" aria-pressed="false">실버</button><button type="button" data-atier="1" aria-pressed="false">골드</button><button type="button" data-atier="2" aria-pressed="false">프리즘</button></div>
-      <input type="search" id="augq" placeholder="증강 이름이나 설명 검색 (예: 프리즘 티켓, 리롤)" aria-label="증강 검색" style="max-width:460px">
+      <input type="search" id="augq" placeholder="증강 이름·설명 검색 (예: 프리즘 티켓, ㅍㄹㅈ, 리롤)" aria-label="증강 검색" style="max-width:460px">
       <div id="auglist" style="display:flex;flex-direction:column;gap:24px"></div>
       <p class="meta">롤체지지 덱 공략 32개(패치 18.4b)에 실린 추천 증강 112개입니다. 증강 설명은 롤체지지에 실린 게임 내 효과를 짧게 줄인 것이고, 「→」 뒤의 어울리는 덱 안내는 효과를 보고 붙인 것입니다. 수치는 패치마다 바뀔 수 있습니다. 덱 이름을 누르면 그 덱이 「덱 추천」 맨 위에 고정됩니다.</p>
     </section>
@@ -727,10 +727,21 @@ function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...st
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// search that also understands Korean initial consonants: "ㅋㅁ" finds 카밀, "카ㅁ" too
+const CHO="ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+const choOf=ch=>{const c=ch.charCodeAt(0)-0xAC00; return c>=0&&c<11172?CHO[Math.floor(c/588)]:ch;};
+function kmatch(text,q){
+  text=String(text).replace(/\s/g,"").toLowerCase(); q=String(q).replace(/\s/g,"").toLowerCase();
+  if(!q||text.includes(q))return true;
+  if(![...q].some(c=>CHO.includes(c)))return false;
+  const T=[...text],Q=[...q];
+  outer: for(let i=0;i+Q.length<=T.length;i++){ for(let j=0;j<Q.length;j++){const t=T[i+j],c=Q[j]; if(t===c||(CHO.includes(c)&&choOf(t)===c))continue; continue outer;} return true; }
+  return false;
+}
 function renderUnits(){
   const q=$("q").value.trim().replace(/\s/g,"");
   $("unitgrid").innerHTML=[1,2,3,4,5].map(c=>{
-    const list=U.filter(u=>u.cost===c&&(!q||u.ko.replace(/\s/g,"").includes(q)));
+    const list=U.filter(u=>u.cost===c&&(!q||kmatch(u.ko,q)||u.traits.some(t=>kmatch(t,q))));
     if(!list.length)return "";
     return `<div class="costrow"><div class="costtag t${c}">${c}코</div><div class="tiles">`+
       list.map(u=>{const L=LVL(u.id);
@@ -839,7 +850,7 @@ function renderDecks(){
       <p class="meta">→ 로 묶은 짝은 특성이 겹치는 기물끼리 맞춘 추정입니다. ＋는 새로 넣는 기물, −는 빼는 기물입니다.</p></div>
       ${Object.values(d.chain).some(c=>c.length)?`<div class="block"><span class="label">아이템을 들고 있다가 넘기는 순서</span><div class="hand">${d.holders.filter(F=>d.chain[F[0]].length).map(F=>`<div>${d.chain[F[0]].map(id=>mini(id,d.temp.includes(id))).join('<span class="ar">→</span>')}<span class="ar">→</span>${mini(F[0])}<span class="its">${F[2].map(n=>itemIc(n,1)).join("")}</span><span class="meta">${[...new Set(F[2])].join(", ")}</span></div>`).join("")}</div></div>`:""}`;
     const items=`<div class="itemsgrid">${r.rows.map(row=>`<div class="block"><span class="holder k${UM[row.id].cost}">${unitPt(row.id)}${role(row.id)?role(row.id)+" · ":""}${UM[row.id].ko}</span><ul class="items">${row.items.map(o=>itemRow(o)).join("")}</ul></div>`).join("")}</div>`;
-    const aug=`<input type="search" class="augq" placeholder="증강 이름으로 찾기 (예: 주사위)" aria-label="증강 이름으로 찾기">
+    const aug=`<input type="search" class="augq" placeholder="증강 이름으로 찾기 (예: 주사위, ㅈㅅㅇ)" aria-label="증강 이름으로 찾기">
       <div class="augs">${AUG[AUGI[d.k]].map((cats,ti)=>`<div class="augt a${ti}"><b>${["실버","골드","프리즘"][ti]}</b>${cats.map(([c,ns])=>`<div class="augc"><span class="label">${c}</span><div>${ns.map(n=>`<span class="augn">${esc(n)}</span>`).join("")}</div></div>`).join("")}</div>`).join("")}</div>
       <p class="meta">게임에서 증강 세 개가 뜨면 이름을 검색해서 이 목록에 있는지 확인하세요. 순서는 롤체지지 공략에 적힌 순서 그대로입니다.</p>`;
     const lv=`<div class="lv">${LV[d.lv].map(([a,b])=>`<span><i>${a}</i>${b}레벨</span>`).join("")}</div>`;
@@ -963,7 +974,7 @@ function renderSpecial(kind){
   $("tab-"+kind).querySelectorAll("[data-xsort]").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.xsort==="avg")===!byWin));
   filterSpecial(kind);
 }
-function filterSpecial(kind){const q=$("xq-"+kind).value.trim().replace(/\s/g,""); $("xc-"+kind).querySelectorAll(".xcard").forEach(c=>{c.hidden=!!q&&!c.dataset.x.includes(q);});}
+function filterSpecial(kind){const q=$("xq-"+kind).value.trim().replace(/\s/g,""); $("xc-"+kind).querySelectorAll(".xcard").forEach(c=>{c.hidden=!!q&&!kmatch(c.dataset.x,q);});}
 function renderSpSel(){
   $("spsel").innerHTML=state.sp.size||state.aug.size?[...state.sp].map(k=>`<span class="spchip"><span class="ic sm">${img("x/"+k)}</span>${esc(K2N[k])}<button type="button" data-sp="${k}" aria-label="${esc(K2N[k])} 빼기">×</button></span>`).join("")+[...state.aug].map(n=>`<span class="spchip" style="padding-left:10px">${esc(n)}<button type="button" data-augrm="${AUGM[n].i}" aria-label="${esc(n)} 빼기">×</button></span>`).join(""):'<span class="meta">고른 것이 없습니다. 상징, 유물, 증강을 얻었으면 아래에서 고르세요.</span>';
 }
@@ -979,7 +990,7 @@ function toggleSp(k){ if(state.example){state.example=false;state.owned.clear();
 $("spsel").addEventListener("click",e=>{const r=e.target.closest("[data-augrm]"); if(r){state.aug.delete(AUGL[+r.dataset.augrm].n); save(); renderAll(); return;} const b=e.target.closest("[data-sp]"); if(b)toggleSp(b.dataset.sp);});
 document.querySelector("#tab-decks").addEventListener("click",e=>{const g=e.target.closest("[data-goto]"); if(g){showTab(g.dataset.goto); window.scrollTo(0,0);}});
 $("decks").addEventListener("input",e=>{const i=e.target; if(!i.classList||!i.classList.contains("augq"))return;
-  const q=i.value.trim().replace(/\s/g,""); i.parentElement.querySelectorAll(".augn").forEach(n=>{const m=q&&n.textContent.replace(/\s/g,"").includes(q); n.classList.toggle("hit",!!m); n.classList.toggle("dim",!!q&&!m);});});
+  const q=i.value.trim().replace(/\s/g,""); i.parentElement.querySelectorAll(".augn").forEach(n=>{const m=q&&kmatch(n.textContent,q); n.classList.toggle("hit",!!m); n.classList.toggle("dim",!!q&&!m);});});
 $("decks").addEventListener("toggle",e=>{const t=e.target,k=t.dataset&&t.dataset.k; if(!k)return; (t.open!==(t.dataset.d==="1"))?state.tog.add(k):state.tog.delete(k);},true);
 document.addEventListener("error",e=>{if(e.target&&e.target.tagName==="IMG")e.target.remove();},true);
 // ---- augments tab
@@ -1024,7 +1035,7 @@ function renderOffer(){
 }
 function renderAugList(){
   const q=$("augq").value.trim().replace(/\s/g,"");
-  const list=AUGL.filter(a=>(state.atier==="all"||a.t===+state.atier)&&(!q||(a.n+(ATIP[a.n]||[]).join("")).replace(/\s/g,"").includes(q)));
+  const list=AUGL.filter(a=>(state.atier==="all"||a.t===+state.atier)&&(!q||kmatch(a.n,q)||(!/[ㄱ-ㅎ]/.test(q)&&kmatch((ATIP[a.n]||[]).join(" "),q))));
   const groups=[["특정 덱 전용 · 뜨면 그 덱을 생각해 볼 만합니다",a=>a.decks.length<=5],["여러 덱에서 추천",a=>a.decks.length>5&&a.decks.length<20],["어느 덱이든 무난 · 덱을 못 정했을 때",a=>a.decks.length>=20]];
   const row=a=>{const on=state.offer.includes(a.n), mine=state.aug.has(a.n);
     const dks=`<div class="dks">${D.filter(d=>a.decks.includes(d.k)).map(d=>dkb(d.k)).join("")}</div>`;
