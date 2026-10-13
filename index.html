@@ -577,7 +577,7 @@ const augW=a=>a.decks.length<=5?1.5:a.decks.length<=15?0.5:0;
 // how much an owned unit says about a deck: rare (high cost) and upgraded (2/3-star) units say a lot,
 // units that most decks use say little. Starting weights, tuned with the early-board simulation.
 const SIG_COST={1:1,2:1.5,3:2.5,4:4,5:5};
-const SIG_STAR=[null,{1:1,2:1,3:1,4:1,5:1},{1:1.3,2:1.8,3:2.5,4:3,5:3},{1:2,2:3,3:4,4:5,5:5}];
+const SIG_STAR=[null,{1:1,2:1,3:1,4:1,5:1},{1:1.3,2:1.8,3:2.5,4:3,5:3},{1:4,2:5,3:6,4:6,5:6}]; // a 3-star means the player has already committed
 let DFC=null;
 function unitDF(id){ if(!DFC){DFC={}; D.forEach(d=>new Set([...d.ids,...d.e5,...d.e6,...d.e7]).forEach(x=>DFC[x]=(DFC[x]||0)+1));} return DFC[id]||1; }
 const idf=id=>0.4+0.6*Math.log(D.length/unitDF(id))/Math.log(D.length);
@@ -598,7 +598,7 @@ function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   let s=sig.reduce((a,x)=>a+x.v,0);
   // reroll decks only make sense once their low-cost core is actually upgrading
   if(d.st[0]==="r"){ const tg=d.b.filter(x=>x[1]===3).map(x=>x[0]);
-    const ok=(owned.has(d.c)&&w(d.c)>=2&&UM[d.c].cost<=3)||tg.filter(id=>owned.has(id)&&w(id)>=2).length>=2;
+    const ok=(owned.has(d.c)&&w(d.c)>=2&&UM[d.c].cost<=3)||tg.some(id=>owned.has(id)&&w(id)>=3)||tg.filter(id=>owned.has(id)&&w(id)>=2).length>=2;
     s=ok?s+2.5:s*0.5; }
   let fit=s;
   const seen=new Set([...d.ids,...d.e5,...d.e6,...d.e7]);
@@ -690,7 +690,7 @@ function itemRow(o,to){
   return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${recipe(o.r)}</small></span><span class="st ${cls}">${txt}</span></li>`;}
 function why(r){
   const p=[], d=r.d, all=r.inB.concat(r.inE);
-  if(r.sig&&r.sig.length)p.push("덱을 고른 근거: "+r.sig.slice(0,4).map(x=>`<b>${UM[x.id].ko}</b> ${UM[x.id].cost}코${state.lv[x.id]?" "+state.lv[x.id]+"성":""}(${unitDF(x.id)>=10&&x.v<2?"흔한 기물":sigWord(x.v)})`).join(", "));
+  if(r.sig&&r.sig.length)p.push("덱을 고른 근거: "+r.sig.slice(0,4).map(x=>`<b>${UM[x.id].ko}</b> ${UM[x.id].cost}코${state.lv[x.id]?" "+state.lv[x.id]+"성":""}(${state.lv[x.id]===3?"강한 신호":unitDF(x.id)>=10&&x.v<2?"흔한 기물":sigWord(x.v)})`).join(", "));
   if(d.s)p.push(`이번 패치 평균 <b>${d.s[0].toFixed(2)}등</b>${d.s[3]<1000?" (표본 적음)":""}입니다.`);
   const up=all.filter(id=>state.lv[id]).map(id=>UM[id].ko+" "+state.lv[id]+"성"+(id===d.c?"(캐리)":id===d.t?"(탱커)":""));
   if(up.length)p.push(`이미 키운 <b>${up.join(", ")}</b>을(를) 그대로 씁니다.`);
@@ -751,7 +751,7 @@ function renderDecks(){
     const key=r=>deckAvg(r.d)-0.35*Math.min(1,r.fit/bestFit)+(state.easy?(r.d.d==="H"?0.15:r.d.d==="E"?-0.1:0):0);
     const strong=()=>res.filter(r=>r.d.s&&r.d.s[3]>=1000&&!r.d.cond&&!r.d.ca).sort((a,b)=>a.d.s[0]-b.d.s[0]);
     if(empty){mode="strong"; res=strong().slice(0,5);}
-    else if(bestFit<4||!cand.length){mode="weak"; res=cand.length?cand.sort((a,b)=>key(a)-key(b)):strong().slice(0,5);}
+    else if(bestFit<4||!cand.length){mode="weak"; const some=cand.length?cand:res.filter(r=>r.fit>0); res=some.length?some.sort((a,b)=>key(a)-key(b)):strong().slice(0,5);}
     else res=cand.sort((a,b)=>key(a)-key(b)); }
   const totalFit=res.length;
   const pinR=state.pin?recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug).find(r=>r.d.k===state.pin):null;
