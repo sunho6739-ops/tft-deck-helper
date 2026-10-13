@@ -748,7 +748,9 @@ function renderDecks(){
   if(!stat){ // decks I can realistically go, ordered by this patch's average placement; a very good match moves up a little
     const bestFit=Math.max(0,...res.map(r=>r.fit)); const cut=fitCut(bestFit);
     const cand=res.filter(r=>r.fit>=cut);
-    const key=r=>deckAvg(r.d)-0.35*Math.min(1,r.fit/bestFit)+(state.easy?(r.d.d==="H"?0.15:r.d.d==="E"?-0.1:0):0);
+    const weakFit=bestFit<4||!res.some(r=>r.fit>=cut);
+    // with a strong signal the patch stats decide; with only weak signals the units the player holds matter more
+    const key=r=>deckAvg(r.d)-(weakFit?1.0:0.35)*Math.min(1,r.fit/(bestFit||1))+(state.easy?(r.d.d==="H"?0.15:r.d.d==="E"?-0.1:0):0);
     const strong=()=>res.filter(r=>r.d.s&&r.d.s[3]>=1000&&!r.d.cond&&!r.d.ca).sort((a,b)=>a.d.s[0]-b.d.s[0]);
     if(empty){mode="strong"; res=strong().slice(0,5);}
     else if(bestFit<4||!cand.length){mode="weak"; const some=cand.length?cand:res.filter(r=>r.fit>0); res=some.length?some.sort((a,b)=>key(a)-key(b)):strong().slice(0,5);}
