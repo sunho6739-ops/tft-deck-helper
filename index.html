@@ -200,6 +200,22 @@ button.tile.sp0{color:var(--muted)}
 .resetb:disabled{opacity:.4;cursor:default}
 .resetb .cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .resetb .cnt:empty{display:none}
+.alist2{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(520px,100%),1fr));gap:6px}
+.arow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.arow2.on{border-color:var(--accent)}.arow2.mine{border-color:var(--ok)}
+.arow2 .tdot{width:10px;height:10px;border-radius:50%;background:var(--s2);flex:none}
+.arow2.t1 .tdot{background:var(--s3)}.arow2.t2 .tdot{background:var(--c4)}
+.arow2>b{font-weight:600;font-size:15px}
+.kchip{font-size:12px;border-radius:999px;padding:1px 9px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.kchip.fix{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.kchip.dir{border-color:var(--c3);color:var(--c3)}
+.fixd{display:inline-flex;gap:4px;flex-wrap:wrap}
+.arow2 .acts{margin-left:auto;display:inline-flex;gap:4px}
+.ab{background:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.ab:hover{border-color:var(--accent);color:var(--fg)}
+.ab.on{border-color:var(--accent);color:var(--accent);font-weight:600}
+.caution1{border-left:4px solid var(--warn);padding:6px 12px;font-size:14px;color:var(--muted)}
+.caution1 b{color:var(--warn);margin-right:6px}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -487,22 +503,15 @@ a{color:var(--accent)}
   <div id="tab-aug" class="xtab" hidden>
     <section>
       <div class="head"><h2>증강이 떴을 때</h2><button class="resetb" type="button" id="augclear"><span aria-hidden="true">↺</span> 증강 선택 지우기 <span class="cnt" id="cnt-aug"></span></button></div>
-      <div class="caution" role="note"><b>증강은 상황에 따라 답이 달라집니다</b>
-        <ul>
-          <li>같은 증강도 내 덱, 남은 체력, 골드, 몇 번째 증강인지에 따라 좋고 나쁨이 바뀝니다.</li>
-          <li>여기 나오는 것은 롤체지지 덱 공략의 추천 증강 목록을 모은 것입니다. 승률 통계가 아닙니다.</li>
-          <li>목록에 없는 증강은 나쁘다는 뜻이 아니라 공략에 실리지 않았다는 뜻입니다.</li>
-        </ul>
-        <p class="meta">참고용으로만 보고, 마지막 선택은 지금 판 상황을 보고 하세요.</p></div>
-      <p class="lede">지금 선택지로 뜬 증강을 아래 목록에서 최대 3개까지 「떴어요」로 표시하면, 내 덱 기준으로 어느 것이 나은지 알려줍니다. 고른 증강은 「골랐어요」로 표시하면 덱 추천에도 반영됩니다.</p>
+      <p class="caution1" role="note"><b>참고용</b> 같은 증강도 덱·체력·골드·몇 번째 증강인지에 따라 답이 달라요. 롤체지지 덱 공략의 추천을 모은 것이고 승률 통계는 아니에요.</p>
       <div class="offer" id="offer"></div>
     </section>
     <section>
-      <div class="head"><h2>증강별 추천 덱</h2></div>
+      <div class="head"><h2>증강 목록</h2><span class="meta">이름에 마우스를 올리면 효과와 어울리는 덱이 나와요</span></div>
       <div class="seg" id="augtier"><button type="button" data-atier="all" aria-pressed="true">전체</button><button type="button" data-atier="0" aria-pressed="false">실버</button><button type="button" data-atier="1" aria-pressed="false">골드</button><button type="button" data-atier="2" aria-pressed="false">프리즘</button></div>
       <input type="search" id="augq" placeholder="증강 이름·설명 검색 (예: 프리즘 티켓, ㅍㄹㅈ, 리롤)" aria-label="증강 검색" style="max-width:460px">
       <div id="auglist" style="display:flex;flex-direction:column;gap:24px"></div>
-      <p class="meta">롤체지지 덱 공략 32개(패치 18.4b)에 실린 추천 증강 112개입니다. 증강 설명은 롤체지지에 실린 게임 내 효과를 짧게 줄인 것이고, 「→」 뒤의 어울리는 덱 안내는 효과를 보고 붙인 것입니다. 수치는 패치마다 바뀔 수 있습니다. 덱 이름을 누르면 그 덱이 「덱 추천」 맨 위에 고정됩니다.</p>
+      <p class="meta">롤체지지 덱 공략 32개(패치 18.4b)에 실린 추천 증강 112개입니다. 효과는 롤체지지의 게임 내 설명을 줄인 것이고, 확정·방향 분류와 어울리는 덱 안내는 효과와 공략을 보고 붙인 것입니다. 이번 세트의 다른 증강은 다음에 추가할 예정이에요.</p>
     </section>
   </div>
   <div id="tab-patch" class="xtab" hidden>
@@ -664,6 +673,7 @@ function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   spUse.forEach(x=>{ if(seenK.has(x.k))return; seenK.add(x.k); const v={M:3,S:2.5,U:2,A:1.5,T:1.5}[x.t]; s+=v; fit+=v; });
   const augUse=aug&&aug.size?[...aug].map(n=>AUGM[n]).filter(a=>a&&a.decks.includes(d.k)):[];
   augUse.forEach(a=>{const v=augW(a); s+=v; if(v>=1.5)fit+=v;});
+  if(aug&&aug.size)[...aug].forEach(n=>{const c=augClass(n); if(!c.decks.includes(d.k))return; if(c.kind==="fix"){s+=3; fit+=4;} else if(c.kind==="dir"){s+=0.8; fit+=0.8;}});
   const caOk=!!(d.ca&&aug&&aug.has(d.ca)); if(caOk){s+=3; fit+=3;}
   if(d.ca&&!caOk){fit=0; s-=3;} // a deck that only works with one augment is not suggested until that augment is picked
   if(d.cond&&!caOk&&!spUse.some(x=>x.t==="M")){s-=1; fit=0;} // conditional decks only once the emblem/artifact/augment is held
@@ -995,9 +1005,36 @@ $("decks").addEventListener("toggle",e=>{const t=e.target,k=t.dataset&&t.dataset
 document.addEventListener("error",e=>{if(e.target&&e.target.tagName==="IMG")e.target.remove();},true);
 // ---- augments tab
 const TIER=["실버","골드","프리즘"];
-const atip=a=>{const t=ATIP[a.n]; return t?`<p class="adesc">${esc(t[0])}</p><p class="afit">→ ${esc(t[1])}</p>`:"";};
 const tierp=a=>`<span class="tierp a${a.t}">${TIER[a.t]}</span>`;
 const dkb=k=>{const d=D.find(x=>x.k===k); return d?`<button type="button" class="dk" data-open="${k}">${esc(d.n)}</button>`:"";};
+// augments that decide the deck: picking them means going this deck (trait/unit-specific augments)
+const AUGFIX={"일인자":["b07fb3b9"],"종결자 협곡야수":["f41b5f58"],"흡수하는 꽃":["e1f992db","efe61c83"],"아이템 추출":["fd963bf1","53129bec"],"작은 털뭉치 친구":["e1f992db","7365c6b0"]};
+// carry damage type of a deck, from the carry's item build (a few carries overridden by hand)
+const CTYPE_OVR={KhaZix:"AP",Kayle:"AP"};
+const APIT=new Set(["라바돈의 죽음모자","대천사의 지팡이","보석 건틀릿","푸른 파수꾼","모렐로노미콘","공허의 지팡이","마법공학 총검","새벽심장"]);
+const deckType=d=>{ if(CTYPE_OVR[d.c])return CTYPE_OVR[d.c]; const it=(d.b.find(x=>x[0]===d.c)||[0,0,[]])[2]; const ap=it.filter(n=>APIT.has(n)).length; return ap>=2?"AP":"AD"; };
+// fix: the augment decides the deck / dir: it pushes toward a kind of deck / any: fine anywhere
+const AUGCLS={};
+function augClass(n){
+  if(AUGCLS[n])return AUGCLS[n];
+  const fx=AUGFIX[n]; if(fx)return AUGCLS[n]={kind:"fix",label:"확정",decks:D.filter(d=>fx.some(k=>d.k.startsWith(k))).map(d=>d.k)};
+  const t=(ATIP[n]||["",""])[1]; let sel=null,label="";
+  if(/1~3코스트 리롤/.test(t)){sel=d=>d.st[0]==="r";label="저코 리롤";}
+  else if(/1코스트 리롤/.test(t)){sel=d=>d.st==="r1";label="1코 리롤";}
+  else if(/2코스트/.test(t)&&/리롤/.test(t)){sel=d=>d.st==="r2";label="2코 리롤";}
+  else if(/3코스트 리롤/.test(t)){sel=d=>d.st==="r3";label="3코 리롤";}
+  else if(/리롤 덱/.test(t)&&!/비추천/.test(t.split("리롤 덱")[1]||"")&&!/리롤 덱에는/.test(t)){sel=d=>d.st[0]==="r";label="리롤";}
+  else if(/물리\(AD\)|공격력\(AD\)/.test(t)){sel=d=>deckType(d)==="AD";label="AD 캐리";}
+  else if(/주문력\(AP\)/.test(t)){sel=d=>deckType(d)==="AP";label="AP 캐리";}
+  else if(/레벨|9레벨|8레벨|5코스트/.test(t)&&!/어느 덱이든/.test(t)){sel=d=>d.st[0]==="f";label="레벨업 덱";}
+  else if(/상징/.test(t)){label="상징 활용";}
+  else if(/유물/.test(t)){label="유물 활용";}
+  if(sel)return AUGCLS[n]={kind:"dir",label,decks:D.filter(sel).map(d=>d.k)};
+  return AUGCLS[n]={kind:"any",label:label||"무난",decks:[]};
+}
+const augTipAttrs=a=>{const t=ATIP[a.n]||["",""]; const c=augClass(a.n); const dk=c.kind==="fix"?"고르면 "+c.decks.map(k=>D.find(d=>d.k===k).n).join(" / ")+" 쪽으로":c.kind==="dir"?`${c.label} 쪽 덱에 좋아요`:"";
+  return tipA(`${a.n} · ${TIER[a.t]}`,t[0],[t[1]?"→ "+t[1]:"",dk].filter(Boolean).join(" · "));};
+const kchip=a=>{const c=augClass(a.n); return `<span class="kchip ${c.kind}">${esc(c.label)}</span>`;};
 // decks the player is plausibly heading for: the pinned one, else the best matches for what they hold
 function augTargets(){
   const res=recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug);
@@ -1009,38 +1046,35 @@ function augTargets(){
 }
 function judgeOffer(){
   const tg=augTargets(), keys=tg.list.map(r=>r.d.k);
-  const rows=state.offer.map(n=>{const a=AUGM[n]; const hit=keys.filter(k=>a.decks.includes(k));
-    let sc=a.decks.length/NDECK; if(hit.includes(keys[0]))sc+=3; else if(hit.length)sc+=1; if(hit.length&&a.decks.length<=5)sc+=1;
-    return {a,hit,sc};}).sort((x,y)=>y.sc-x.sc);
+  const rows=state.offer.map(n=>{const a=AUGM[n], c=augClass(n); const hit=keys.filter(k=>a.decks.includes(k)||c.decks.includes(k));
+    let sc=a.decks.length/NDECK; if(hit.includes(keys[0]))sc+=3; else if(hit.length)sc+=1; if(hit.length&&(c.kind==="fix"||a.decks.length<=5))sc+=1;
+    return {a,c,hit,sc};}).sort((x,y)=>y.sc-x.sc);
   return {tg,rows};
 }
 function renderOffer(){
   const el=$("offer"); el.classList.toggle("has",state.offer.length>0);
   const mine=state.aug.size?`<div class="spsel"><span class="label">고른 증강</span>${[...state.aug].map(n=>`<span class="spchip" style="padding-left:10px">${esc(n)}<button type="button" data-augrm="${AUGM[n].i}" aria-label="${esc(n)} 빼기">×</button></span>`).join("")}</div>`:"";
-  if(!state.offer.length){ el.innerHTML=`<p><b>지금 뜬 증강을 아래 목록에서 표시하세요.</b></p><p class="meta">각 증강의 「떴어요」를 누르면 여기에 비교가 나옵니다. 최대 3개까지 고를 수 있습니다.</p>${mine}`; return; }
+  if(!state.offer.length){ el.innerHTML=`<p><b>지금 뜬 증강 3개를 아래에서 「＋」로 표시하세요.</b> 내 덱 기준으로 뭘 고를지 알려드려요.</p>${mine}`; return; }
   const {tg,rows}=judgeOffer(); const t0=tg.list[0];
-  const base=t0?(tg.pin?`고정한 덱 <b>${esc(t0.d.n)}</b> 기준입니다.`:`지금 내 기물에 가장 맞는 <b>${tg.list.map(r=>esc(r.d.n)).join(", ")}</b> 기준입니다.`):"아직 정한 덱이 없어서, 여러 덱 공략에 두루 실린 순서로 봅니다. 「덱 추천」에서 기물을 고르면 내 덱 기준으로 바뀝니다.";
-  const anyHit=rows.some(r=>r.hit.length); const tie=rows.length>1&&Math.abs(rows[0].sc-rows[1].sc)<0.05;
-  let head;
-  if(rows.length===1)head="하나만 표시했습니다. 같이 뜬 증강도 표시하면 비교해 드립니다.";
-  else if(t0&&!anyHit)head=`표시한 증강 모두 지금 덱 공략의 추천 목록에는 없습니다. 그중에는 여러 덱에 두루 쓰이는 <b>${esc(rows[0].a.n)}</b>이(가) 무난합니다.`;
-  else if(tie)head=`<b>${esc(rows[0].a.n)}</b>와(과) <b>${esc(rows[1].a.n)}</b>은(는) 비슷합니다. 지금 더 급한 쪽(전투력, 골드, 아이템)을 고르세요.`;
-  else head=`이 중에서는 <b>${esc(rows[0].a.n)}</b>을(를) 먼저 보세요.`;
-  el.innerHTML=`<p class="meta">${base}</p><p style="font-size:17px">${head}</p>`+rows.map((r,ix)=>{const a=r.a;
-    const why=r.hit.length?`${r.hit.map(k=>dkb(k)).join(" ")} 공략에서 추천합니다.${a.decks.length<=5?" 이 덱 쪽에서만 추천하는 증강이라 잘 맞습니다.":""}`
-      :t0?`지금 덱 공략에는 없습니다. ${a.decks.length>=20?"다만 거의 모든 덱 공략에 실린 무난한 증강입니다.":`공략 ${a.decks.length}개에서 추천합니다.`}`
-      :`덱 공략 ${NDECK}개 중 ${a.decks.length}개에서 추천합니다.`;
-    return `<div class="orow${ix===0&&rows.length>1&&!tie?" best":""}"><h3>${ix===0&&rows.length>1&&!tie?'<span class="st now">먼저</span>':""}${esc(a.n)}${tierp(a)}<span class="tag">${a.cats.join(" · ")}</span></h3><span class="acts"><button type="button" class="pickb" data-augpick="${a.i}">이걸 골랐어요</button><button type="button" class="pinb" data-augoff="${a.i}">빼기</button></span>${atip(a)}<p>${why}</p></div>`;}).join("")
-    +`<p class="meta">공략에 실렸는지만 본 결과입니다. 체력이 낮으면 전투 증강, 여유가 있으면 경제 증강처럼 지금 상황을 함께 보세요.</p>${mine}`;
+  const tie=rows.length>1&&Math.abs(rows[0].sc-rows[1].sc)<0.05;
+  const base=t0?(tg.pin?`고정한 덱 ${esc(t0.d.n)} 기준`:`내 덱 후보 ${tg.list.map(r=>esc(r.d.n)).join(", ")} 기준`):"아직 정한 덱이 없어서 여러 덱에 두루 쓰이는 순서 기준";
+  el.innerHTML=`<p class="meta">${base}</p>`+rows.map((r,ix)=>{const a=r.a, c=r.c, best=ix===0&&rows.length>1&&!tie;
+    const why=c.kind==="fix"?(r.hit.length?`지금 덱과 딱 맞아요`:`고르면 ${c.decks.map(dkb).join(" ")} 쪽으로 가야 해요`)
+      :r.hit.length?`${r.hit.slice(0,2).map(dkb).join(" ")}에 잘 맞아요`
+      :c.kind==="dir"?`${esc(c.label)} 쪽 덱에 좋아요`:"어느 덱이든 무난";
+    return `<div class="orow${best?" best":""}"><h3>${best?'<span class="st now">추천</span>':""}<span${augTipAttrs(a)}>${esc(a.n)}</span>${tierp(a)}${kchip(a)}</h3><span class="acts"><button type="button" class="pickb" data-augpick="${a.i}">골랐어요</button><button type="button" class="pinb" data-augoff="${a.i}">빼기</button></span><p>${why}</p></div>`;}).join("")
+    +`<p class="meta">체력이 낮으면 전투 증강, 여유가 있으면 경제 증강처럼 판 상황도 같이 보세요.</p>${mine}`;
 }
 function renderAugList(){
-  const q=$("augq").value.trim().replace(/\s/g,"");
+  const q=$("augq").value.trim();
   const list=AUGL.filter(a=>(state.atier==="all"||a.t===+state.atier)&&(!q||kmatch(a.n,q)||(!/[ㄱ-ㅎ]/.test(q)&&kmatch((ATIP[a.n]||[]).join(" "),q))));
-  const groups=[["특정 덱 전용 · 뜨면 그 덱을 생각해 볼 만합니다",a=>a.decks.length<=5],["여러 덱에서 추천",a=>a.decks.length>5&&a.decks.length<20],["어느 덱이든 무난 · 덱을 못 정했을 때",a=>a.decks.length>=20]];
-  const row=a=>{const on=state.offer.includes(a.n), mine=state.aug.has(a.n);
-    const dks=`<div class="dks">${D.filter(d=>a.decks.includes(d.k)).map(d=>dkb(d.k)).join("")}</div>`;
-    return `<div class="arow${on?" on":""}${mine?" mine":""}"><div class="top"><b>${esc(a.n)}</b>${tierp(a)}<span class="cnt">${a.cats.join(" · ")} · 덱 ${a.decks.length}/${NDECK}</span><span class="acts"><button type="button" class="ownb${on?" on":""}" data-augon="${a.i}" aria-pressed="${on}">${on?"뜬 증강 ✓":"떴어요"}</button><button type="button" class="ownb${mine?" on":""}" data-augpick="${a.i}" aria-pressed="${mine}">${mine?"고름 ✓":"골랐어요"}</button></span></div>${atip(a)}${a.decks.length<=5?dks:a.decks.length>=NDECK-1?'<span class="cnt">모든 덱 공략에 실려 있습니다.</span>':`<details><summary>추천 덱 ${a.decks.length}개 보기</summary>${dks}</details>`}</div>`;};
-  $("auglist").innerHTML=groups.map(([t,f])=>{const g=list.filter(f).sort((x,y)=>x.t-y.t||x.decks.length-y.decks.length||x.i-y.i); return g.length?`<div class="agrp"><h3>${t}</h3><div class="alist">${g.map(row).join("")}</div></div>`:"";}).join("")||'<p class="meta">찾는 증강이 목록에 없습니다. 공략에 실리지 않은 증강이라 정보가 없습니다.</p>';
+  const groups=[["확정 · 고르면 덱이 정해져요","fix"],["방향 · 이런 덱 쪽으로 기울어요","dir"],["무난 · 어느 덱이든 괜찮아요","any"]];
+  const row=a=>{const on=state.offer.includes(a.n), mine=state.aug.has(a.n), c=augClass(a.n);
+    return `<div class="arow2 t${a.t}${on?" on":""}${mine?" mine":""}"><span class="tdot" aria-hidden="true"></span>
+      <b${augTipAttrs(a)}>${esc(a.n)}</b>${kchip(a)}
+      ${c.kind==="fix"?`<span class="fixd">${c.decks.map(dkb).join("")}</span>`:""}
+      <span class="acts"><button type="button" class="ab${on?" on":""}" data-augon="${a.i}" aria-pressed="${on}" title="지금 뜬 증강으로 표시">${on?"✓ 떴음":"＋ 떴어요"}</button><button type="button" class="ab${mine?" on":""}" data-augpick="${a.i}" aria-pressed="${mine}">${mine?"✓ 고름":"골랐어요"}</button></span></div>`;};
+  $("auglist").innerHTML=groups.map(([t,k])=>{const g=list.filter(a=>augClass(a.n).kind===k).sort((x,y)=>x.t-y.t||augClass(x.n).label.localeCompare(augClass(y.n).label)||x.i-y.i); return g.length?`<div class="agrp"><h3>${t} <span class="cnt">${g.length}</span></h3><div class="alist2">${g.map(row).join("")}</div></div>`:"";}).join("")||'<p class="meta">찾는 증강이 목록에 없습니다. 아직 공략에 실리지 않은 증강이라 정보가 없어요.</p>';
 }
 function renderAug(){ renderOffer(); renderAugList(); document.querySelectorAll("#augtier [data-atier]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.atier===state.atier)); }
 $("augq").addEventListener("input",renderAugList);
