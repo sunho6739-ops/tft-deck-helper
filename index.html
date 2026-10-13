@@ -192,6 +192,14 @@ button.tile.sp0{color:var(--muted)}
 .xbest .build+.build{border-top:1px solid var(--line);padding-top:8px}
 .xmore{border-top:1px solid var(--line);padding-top:8px}.xmore summary{font-weight:500;font-size:14px;color:var(--muted)}
 .xmore[open]>div{margin-top:8px}
+.resetbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.resetb{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--fg);white-space:nowrap}
+.resetb:hover:not(:disabled){border-color:var(--warn);color:var(--warn)}
+.resetb.danger{border-color:var(--warn);color:var(--warn);font-weight:600}
+.resetb.danger:hover:not(:disabled){background:var(--warn);color:var(--bg)}
+.resetb:disabled{opacity:.4;cursor:default}
+.resetb .cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.resetb .cnt:empty{display:none}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -383,10 +391,14 @@ a{color:var(--accent)}
   <div id="tab-decks">
   <div class="cols">
   <div class="col pick">
+    <div class="resetbar" role="group" aria-label="초기화">
+      <button type="button" class="resetb danger" id="resetAll"><span aria-hidden="true">↺</span> 전체 초기화</button>
+      <span class="meta" id="resetsum"></span>
+    </div>
     <section aria-labelledby="h-units">
       <div class="head">
         <h2 id="h-units"><span class="no">1</span>내 기물</h2>
-        <button class="link" id="reset" type="button">전부 지우기</button>
+        <button type="button" class="resetb" id="reset"><span aria-hidden="true">↺</span> 기물만 초기화 <span class="cnt" id="cnt-units"></span></button>
       </div>
       <p class="example" id="exnote">예시로 몇 개 골라 둔 상태입니다. 기물을 누르면 예시가 지워지고 내 선택으로 바뀝니다.</p>
       <p class="meta">누를 때마다 보유 → 2성 → 3성 → 해제 순서로 바뀝니다. 모서리의 ×를 누르면 바로 뺍니다.</p>
@@ -446,7 +458,7 @@ a{color:var(--accent)}
 
   <div id="tab-emb" class="xtab" hidden>
     <section>
-      <div class="head"><h2>상징이 나왔을 때</h2><button class="link" type="button" data-spclear="emb">선택 지우기</button></div>
+      <div class="head"><h2>상징이 나왔을 때</h2><button class="resetb" type="button" data-spclear="emb"><span aria-hidden="true">↺</span> 상징 선택 지우기 <span class="cnt" id="cnt-emb"></span></button></div>
       <p class="lede">가진 상징을 누르면 추천 덱에 반영되고, 아래 설명에서도 맨 위로 올라옵니다. 덱 이름을 누르면 그 덱이 「덱 추천」 맨 위에 고정됩니다.</p>
       <div class="seg"><button type="button" data-xsort="win" aria-pressed="true">승률 높은 순 · 1등 비율</button><button type="button" data-xsort="avg" aria-pressed="false">평균 등수 순</button></div>
       <div class="block"><span class="label">상징 조합표 · 재료 + 뒤집개/프라이팬</span><div class="egrid" id="egrid"></div>
@@ -461,7 +473,7 @@ a{color:var(--accent)}
   </div>
   <div id="tab-art" class="xtab" hidden>
     <section>
-      <div class="head"><h2>유물이 나왔을 때</h2><button class="link" type="button" data-spclear="art">선택 지우기</button></div>
+      <div class="head"><h2>유물이 나왔을 때</h2><button class="resetb" type="button" data-spclear="art"><span aria-hidden="true">↺</span> 유물 선택 지우기 <span class="cnt" id="cnt-art"></span></button></div>
       <p class="lede">가진 유물을 누르면 추천 덱에 반영되고, 아래 설명에서도 맨 위로 올라옵니다. 덱 이름을 누르면 그 덱이 「덱 추천」 맨 위에 고정됩니다.</p>
       <div class="seg"><button type="button" data-xsort="win" aria-pressed="true">승률 높은 순 · 1등 비율</button><button type="button" data-xsort="avg" aria-pressed="false">평균 등수 순</button></div>
       <div class="tiles xpick" id="xp-art"></div>
@@ -474,7 +486,7 @@ a{color:var(--accent)}
   </div>
   <div id="tab-aug" class="xtab" hidden>
     <section>
-      <div class="head"><h2>증강이 떴을 때</h2><button class="link" type="button" id="augclear">선택 지우기</button></div>
+      <div class="head"><h2>증강이 떴을 때</h2><button class="resetb" type="button" id="augclear"><span aria-hidden="true">↺</span> 증강 선택 지우기 <span class="cnt" id="cnt-aug"></span></button></div>
       <div class="caution" role="note"><b>증강은 상황에 따라 답이 달라집니다</b>
         <ul>
           <li>같은 증강도 내 덱, 남은 체력, 골드, 몇 번째 증강인지에 따라 좋고 나쁨이 바뀝니다.</li>
@@ -1085,7 +1097,7 @@ const touchOnly=()=>window.matchMedia&&matchMedia("(hover: none)").matches;
 document.addEventListener("mouseover",e=>{ if(touchOnly())return; const t=e.target.closest("[data-tn]"); if(t)showTip(t); else hov.hidden=true; });
 document.addEventListener("click",e=>{ if(!touchOnly())return; const t=e.target.closest("[data-tn]"); if(!t){hov.hidden=true;return;} showTip(t); clearTimeout(hovT); hovT=setTimeout(()=>{hov.hidden=true;},3500); });
 addEventListener("scroll",()=>{hov.hidden=true;},{passive:true});
-function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
+function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); paintResets(); }
 function touched(){ state.example=false; save(); }
 function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
 
@@ -1106,7 +1118,18 @@ $("q").addEventListener("input",renderUnits);
 $("results").addEventListener("click",e=>{const b=e.target.closest("[data-sort]"); if(!b)return; state.sort=b.dataset.sort;
   document.querySelectorAll(".seg [data-sort]").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderDecks();});
 $("easy").addEventListener("change",e=>{state.easy=e.target.checked; save(); renderDecks();});
-$("reset").addEventListener("click",()=>{state.owned.clear();state.lv={};state.inv={};state.sp.clear();state.aug.clear();state.offer=[];$("q").value="";touched();renderAll();});
+// main tab: everything at once, or just the units
+$("resetAll").addEventListener("click",()=>{state.owned.clear();state.lv={};state.inv={};state.sp.clear();state.aug.clear();state.offer=[];state.pin=null;state.fold.clear();$("q").value="";touched();renderAll();});
+$("reset").addEventListener("click",()=>{state.owned.clear();state.lv={};$("q").value="";touched();renderAll();});
+function paintResets(){
+  const nu=state.example?0:state.owned.size, ni=state.example?0:Object.values(state.inv).reduce((a,b)=>a+(b||0),0);
+  const ne=EMBL.filter(e=>state.sp.has(e[0])).length, na=ART.filter(a=>state.sp.has(a[0])).length, ng=state.aug.size+state.offer.length;
+  const set=(id,n)=>{const el=$(id); if(el)el.textContent=n?n+"개":"";};
+  set("cnt-units",nu); set("cnt-emb",ne); set("cnt-art",na); set("cnt-aug",ng);
+  $("reset").disabled=!nu; document.querySelector('[data-spclear="emb"]').disabled=!ne; document.querySelector('[data-spclear="art"]').disabled=!na; $("augclear").disabled=!ng;
+  const parts=[nu&&`기물 ${nu}`,ni&&`재료 ${ni}`,ne&&`상징 ${ne}`,na&&`유물 ${na}`,state.aug.size&&`증강 ${state.aug.size}`,state.pin&&"고정 덱 1"].filter(Boolean);
+  $("resetAll").disabled=!parts.length&&!state.example; $("resetsum").textContent=state.example?"지금은 예시로 골라 둔 상태입니다":parts.length?"선택: "+parts.join(" · "):"선택한 것이 없습니다";
+}
 $("go").addEventListener("click",()=>$("results").scrollIntoView({block:"start"}));
 renderAll();
 if(location.hash==="#emb"||location.hash==="#art"||location.hash==="#aug"||location.hash==="#patch")showTab(location.hash.slice(1));
