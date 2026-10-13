@@ -174,7 +174,24 @@ button.tile.sp0{color:var(--muted)}
 .egrid .ecell .xv{margin-left:auto}
 .egrid .ecell.top b{color:var(--accent)}
 @media (max-width:520px){.egrid .ecell .xv{display:none}.egrid .ec{padding:6px 2px;font-size:13px}}
-.tipbox{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(92vw,520px);background:var(--fg);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;line-height:1.5;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.hovtip{position:fixed;z-index:40;max-width:min(300px,92vw);background:var(--fg);color:var(--bg);border-radius:8px;padding:8px 11px;font-size:13px;line-height:1.45;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:2px}
+.hovtip b{font-size:14px}.hovtip .r{opacity:.7;font-size:12px}
+[data-tn]{cursor:help}
+.ii{display:inline-flex;align-items:center;gap:4px}
+.nm{display:none}.noimg .nm{display:inline;font-size:12.5px}
+.build{display:flex;align-items:center;gap:12px}
+.build .bu{display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:48px}
+.build .bn{font-size:12px;line-height:1.2;white-space:nowrap}
+.build .bits{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.build .bits .ic{width:30px;height:30px;border-radius:6px}
+.build .pt{width:34px;height:34px;font-size:14px}
+.build.big .pt{width:46px;height:46px;font-size:18px}
+.build.big .bits .ic{width:40px;height:40px}
+.build .bmeta{margin-left:auto;font-size:13px;color:var(--muted);text-align:right;line-height:1.3;font-variant-numeric:tabular-nums}
+.build.big .bmeta{font-size:15px;color:var(--fg)}
+.xbest .build+.build{border-top:1px solid var(--line);padding-top:8px}
+.xmore{border-top:1px solid var(--line);padding-top:8px}.xmore summary{font-weight:500;font-size:14px;color:var(--muted)}
+.xmore[open]>div{margin-top:8px}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -674,15 +691,18 @@ const img=p=>HASIMG&&src(p)?`<img src="${src(p)}" alt="" loading="lazy" referrer
 const unitPt=(id,extra="")=>`<span class="pt">${esc(UM[id].ko[0])}${img("c/"+id+".jpg")}${extra}</span>`;
 // short hover text for items (my own one-line summaries of the in-game effects) plus the recipe
 const ITIP={"죽음의 검": "공격력과 피해량을 올려 주는 순수 딜 아이템", "거인 학살자": "체력이 많은 적(탱커)에게 피해가 더 들어감", "마법공학 총검": "입힌 피해 일부로 체력이 낮은 아군을 회복", "쇼진의 창": "기본 공격마다 마나를 더 얻어 스킬을 자주 씀", "밤의 끝자락": "체력이 낮아지면 잠깐 저지 불가가 되고 회복", "피바라기": "피해 흡혈, 체력이 반쯤 깎이면 보호막", "스테락의 도전": "체력이 깎이면 보호막과 공격력을 얻음", "무한의 대검": "치명타가 늘고 스킬에도 치명타가 터짐(정밀)", "붉은 덩굴정령": "공격 속도, 적에게 화상과 상처(회복 감소)", "구인수의 격노검": "싸울수록 공격 속도가 계속 쌓임", "공허의 지팡이": "스킬로 적의 마법 저항력을 깎음", "거인의 결의": "때리거나 맞을수록 공격력·주문력이 쌓이고, 다 쌓이면 단단해짐", "크라켄의 분노": "기본 공격이 옆의 적도 같이 때림", "내셔의 이빨": "기본 공격할 때 마나를 더 얻음", "최후의 속삭임": "공격한 적의 방어력을 깎음(파열)", "라바돈의 죽음모자": "주문력과 피해량을 크게 올림", "대천사의 지팡이": "전투 중 시간이 지날수록 주문력이 오름", "크라운가드": "시작할 때 큰 보호막, 보호막이 끝나면 주문력", "이온 충격기": "주변 적의 마법 저항력을 깎고 스킬 쓰는 적에게 피해", "모렐로노미콘": "적에게 화상과 상처(회복 감소)", "보석 건틀릿": "주문력, 스킬에도 치명타가 터짐(정밀)", "푸른 파수꾼": "마나 회복을 도와 스킬을 더 자주 씀", "수호자의 맹세": "시작 마나, 체력이 낮아지면 마나와 보호막", "적응형 투구": "마나를 더 얻고, 탱커면 방어력·마법 저항력, 딜러면 공격력·주문력", "정령의 형상": "받는 피해를 줄이고(내구력) 체력을 회복", "정의의 손길": "공격력·주문력과 모든 피해 흡혈", "덤불 조끼": "기본 공격 피해를 덜 받고 주변 적에게 피해", "가고일 돌갑옷": "맞을수록 방어력·마법 저항력이 쌓임", "태양불꽃 망토": "주변 적에게 화상과 상처(회복 감소)", "굳건한 심장": "받는 피해를 줄여 줌(내구력)", "용의 발톱": "체력을 올리고 주기적으로 회복", "저녁갑주": "주변 적의 방어력을 깎고 전투 초반 단단해짐", "수은": "전투 초반 군중 제어에 면역, 공격 속도가 쌓임", "워모그의 갑옷": "체력을 크게 올림", "타격대의 철퇴": "치명타가 터질수록 피해량이 쌓임", "도적의 장갑": "매 라운드 무작위 아이템 2개 (아이템 칸 3개 차지)"};
-function itemTitle(n){
-  const k=typeof N2K!=="undefined"?N2K[n]:null; let t=ITIP[n]||"";
-  if(!t&&k){const a=ART.find(x=>x[0]===k); t=a?a[3]:(EMBTIP[n.replace(/ 상징$/,"")]||"");}
-  const rc=I[n]?I[n].map(c=>CM[c]).join(" + "):(SPECIAL[n]||"");
-  return n+(t?" · "+t:"")+(rc?" (재료: "+rc+")":"");
+function itemParts(n){
+  const k=typeof N2K!=="undefined"?N2K[n]:null; let t=ITIP[n]||"", rc=I[n]?I[n].map(c=>CM[c]).join(" + "):(SPECIAL[n]||"");
+  if(!t&&k){const a=ART.find(x=>x[0]===k); if(a){t=a[3]; rc=rc||"유물 · 조합 불가";} else {const e=EMBL.find(x=>x[0]===k); t=EMBTIP[e?e[1]:""]||""; if(e)rc=e[2]||"조합 불가";}}
+  return [n,t,rc?"재료: "+rc:""];
 }
-const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}" title="${esc(itemTitle(n))}">${IFILE[n]?img("i/"+IFILE[n]):""}</span>`;
-// icon + name, both hoverable; emblems/artifacts use their own icon set
-const itemChip=n=>{const k=typeof N2K!=="undefined"?N2K[n]:null; const ic=k&&!IFILE[n]?`<span class="ic sm" title="${esc(itemTitle(n))}">${img("x/"+k)}</span>`:itemIc(n,1); return `<span class="ichip" title="${esc(itemTitle(n))}">${ic}${esc(n)}</span>`;};
+// hover card data: name / description / extra line (shown by the shared tooltip below)
+const tipA=(a,b,c)=>` data-tn="${esc(a||"")}" data-td="${esc(b||"")}" data-tr="${esc(c||"")}"`;
+const itemTip=n=>tipA(...itemParts(n));
+const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}"${itemTip(n)}>${IFILE[n]?img("i/"+IFILE[n]):""}</span>`;
+// any item, emblem or artifact as an icon (name only shown when images are off)
+const anyIc=(n,cls="")=>{const k=typeof N2K!=="undefined"?N2K[n]:null; return `<span class="ii"${itemTip(n)}><span class="ic ${cls}">${k&&!IFILE[n]?img("x/"+k):IFILE[n]?img("i/"+IFILE[n]):""}</span><span class="nm">${esc(n)}</span></span>`;};
+const itemChip=n=>anyIc(n,"sm");
 const compIc=(c,sm)=>`<span class="ic${sm?" sm":""}">${img("i/"+CFILE[c])}</span>`;
 const recipe=r=>`${compIc(r[0],1)}${CM[r[0]]} + ${compIc(r[1],1)}${CM[r[1]]}`;
 
@@ -885,15 +905,16 @@ function xBest(k){
     const f=fillOthers(k,ch); out.push({ch,avg,plays,...f});});
   return out.filter(o=>o.others.length).sort((a,b)=>(b.plays>0)-(a.plays>0)||a.avg-b.avg);
 }
+// champion portrait + the three items (this emblem/artifact first), names and details on hover
+function buildRow(o,k,big){
+  const u=UM[o.ch];
+  return `<div class="build${big?" big":""}"><span class="bu"${tipA(u.ko,`${u.cost}코스트 · ${u.traits.join(", ")}`,"")}>${unitPt(o.ch)}<span class="bn">${esc(u.ko)}</span></span>
+    <span class="bits">${[K2N[k]].concat(o.others.slice(0,2)).map(n=>anyIc(n)).join("")}</span>
+    <span class="bmeta"${tipA("근거",o.src,"")}>${o.plays?`평균 ${o.avg.toFixed(2)}등<br><small>${o.plays.toLocaleString("ko-KR")}판</small>`:"공략"}</span></div>`;
+}
 function bestHtml(k){
   const L=xBest(k); if(!L.length)return "";
-  const its=a=>a.map(n=>`<b>${itemChip(n)}</b>`).join(" + ");
-  const a=L[0];
-  return `<div class="xbest"><span class="lab">이렇게 쓰세요</span>
-    <div class="row">${mini(a.ch)}에게 · 나머지 두 칸 ${its(a.others)}</div>
-    <div class="row"><span class="meta">${a.plays?`이 기물이 든 판 평균 ${a.avg.toFixed(2)}등 · ${a.plays.toLocaleString("ko-KR")}판 · `:""}근거: ${esc(a.src)}</span></div>
-    ${L.slice(1,3).map(b=>`<div class="alt">다른 선택: ${mini(b.ch)} + ${b.others.map(itemChip).join(", ")}${b.plays?` · 평균 ${b.avg.toFixed(2)}등`:""}</div>`).join("")}
-  </div>`;
+  return `<div class="xbest"><span class="lab">추천 조합</span>${buildRow(L[0],k,true)}${L.slice(1,3).map(b=>buildRow(b,k,false)).join("")}</div>`;
 }
 // what each emblem actually does for the holder and how to use it (effects from the dak.gg/LoLCHESS.GG trait data, usage notes are mine)
 const EMBTIP={"요정": "요정 기물은 나비정령이 모일수록 공격력·주문력이 오르고, 체력이 반 아래면 회복도 합니다. 렝가·시비르 같은 딜러에게 주면 딜과 유지력을 같이 챙겨요.", "사냥꾼": "공격력을 올려 줍니다. 장로 드래곤·니달리 같은 공격력 딜러에게 주면 공격력 아이템 한 칸 몫을 합니다.", "지옥불": "능력치 대신 적에게 화상과 상처(회복 감소)를 겁니다. 회복이 많은 상대를 만날 때 좋고, 애쉬가 가장 많이 듭니다.", "속사포": "기본 공격을 할수록 공격 속도가 쌓입니다. 평타로 싸우는 캐리(덩굴정령·이즈리얼)에게 주면 공격 속도 아이템 부담이 줄어요.", "나무정령": "능력치 대신 나무정령 식물을 더 받는 특성이라, 단계를 올려 식물을 늘리는 용도입니다. 18.4에서 상징 자체의 방어력·마법 저항력이 줄었어요.", "약탈자": "추가 피해와 모든 피해 흡혈을 줍니다. 흡혈이 붙으니 피바라기 같은 흡혈 아이템 대신 딜 아이템을 넣어도 돼요. 니달리가 가장 많이 듭니다.", "날렵이": "효과 데이터는 아직 확인하지 못했어요. 통계상 렝가·피들스틱이 주로 들고, 1등 비율이 낮은 편이라 우선순위는 낮아요.", "선봉대": "효과 데이터는 아직 확인하지 못했어요. 통계상 아무무·세트·마오카이 같은 앞줄 탱커가 주로 들어요.", "개화": "공격력·주문력을 올려 줍니다. 알룬·모르가나 같은 캐리에게 주면 딜 아이템 한 칸 몫을 합니다.", "주문술사": "효과 데이터는 아직 확인하지 못했어요. 통계상 모르가나·소라카·럭스 같은 주문력 캐리가 주로 듭니다.", "기원자": "팀 전체에 마나 재생을 주고, 기원자 기물은 더 많이 받습니다. 아리·알룬 같은 스킬 캐리에게 주면 마나 아이템(쇼진의 창, 푸른 파수꾼) 하나를 딜 아이템으로 바꿔도 돼요.", "달빛": "달빛 기물과 옆 아군이 공격 속도와 주문력을 얻습니다. 케일에게 주는 게 정석이고, 달빛 케일 덱의 핵심이에요.", "싸움꾼": "체력을 크게 올려 줍니다. 마스터 이 같은 근접 캐리에게 주면 탱 아이템 없이도 버티고, 감시자·마오카이 같은 탱커에게 줘도 좋아요.", "검은 가시": "전투 직전 검은 가시 칸의 아군을 희생해 다른 기물에게 체력을 넘깁니다. 자이라·유나라가 주로 듭니다.", "처형자": "치명타 확률과 정밀(스킬에도 치명타)을 줍니다. 자이라·아리 같은 스킬 캐리에게 주면 보석 건틀릿 없이도 스킬 치명타가 터져요. 이번 패치 상징 중 1등 비율 상위권이에요.", "원시": "원시 축복 네 가지 중 하나를 고르는 특성입니다. 애쉬·코그모 같은 원거리 딜러가 주로 들어요.", "악의 여단": "능력치 없이 정기를 모아 보상을 받는 특성입니다. 이번 패치 평균 5등대로 상징 중 가장 낮아서, 다른 상징이 있으면 그쪽을 쓰세요.", "엄호대": "팀 전체 방어력·마법 저항력을 올리고, 엄호대 기물은 더 받습니다. 렝가 같은 근접 캐리에게 주면 방어 아이템 한 칸을 아낄 수 있어요.", "치명적인 꽃": "적을 처치할 때 마나와 회복을 얻습니다. 베이가처럼 마무리를 자주 하는 스킬 캐리에게 주세요.", "전쟁기계": "내구력(받는 피해 감소)을 줍니다. 케넨·타릭 같은 앞줄에게 주면 탱 아이템 한 칸 몫을 합니다."};
@@ -922,7 +943,7 @@ function renderSpecial(kind){
       ${st?`<div class="stats"><span class="${byWin?"hi":""}"><b>${st[2].toFixed(1)}%</b>1등</span><span class="${byWin?"":"hi"}"><b>${st[0].toFixed(2)}</b>평균 등수</span><span><b>${st[1].toFixed(1)}%</b>4등 안</span><span>${st[3].toLocaleString("ko-KR")}판</span></div>`:""}
       <p>${x.tip}</p>
       ${bestHtml(x.k)}
-      ${champs.length?champs.map(c=>`<div class="xrec">${mini(c)}<ul>${by[c].slice().sort((a,b)=>ORD[a.t]-ORD[b.t]).map(line).join("")}</ul></div>`).join(""):'<p class="meta">추천 기물 자료가 없습니다.</p>'}
+      ${champs.length?`<details class="xmore"><summary>기물별 자세히 (${champs.length})</summary>${champs.map(c=>`<div class="xrec">${mini(c)}<ul>${by[c].slice().sort((a,b)=>ORD[a.t]-ORD[b.t]).map(line).join("")}</ul></div>`).join("")}</details>`:'<p class="meta">추천 기물 자료가 없습니다.</p>'}
     </article>`};}).sort((a,b)=>b.own-a.own||a.rank-b.rank);
   const nOwn=cards.filter(c=>c.own).length, word=kind==="emb"?"상징":"유물";
   $("xc-"+kind).innerHTML=(nOwn?`<div class="xsub">내가 가진 ${word}</div>`:"")+cards.slice(0,nOwn).map(c=>c.html).join("")+(nOwn?`<div class="xsub">나머지 ${word}</div>`:"")+cards.slice(nOwn).map(c=>c.html).join("");
@@ -1047,16 +1068,23 @@ function renderEGrid(){
   EMBL.forEach(([k,tr,rc])=>{ if(!rc)return; const [a,b]=rc.split(" + "); cells[COMP[a]+"|"+b]={k,tr}; });
   const ranked=EMBL.map(e=>e[0]).filter(k=>ISTAT[k]).sort((a,b)=>ISTAT[b][2]-ISTAT[a][2]).slice(0,5);
   const cell=c=>{ if(!c)return '<span class="ec meta">-</span>'; const st=ISTAT[c.k], own=state.sp.has(c.k);
-    return `<button type="button" class="ecell${own?" on":""}${ranked.includes(c.k)?" top":""}" data-sp="${c.k}" aria-pressed="${own}" title="${esc(c.tr)} 상징 · ${esc((EMBTIP[c.tr]||"").slice(0,80))}"><span class="ic sm">${img("x/"+c.k)}</span><b>${esc(c.tr)}</b>${st?`<span class="xv">${st[2].toFixed(1)}%</span>`:""}</button>`; };
+    return `<button type="button" class="ecell${own?" on":""}${ranked.includes(c.k)?" top":""}" data-sp="${c.k}" aria-pressed="${own}" ${itemTip(c.tr+" 상징")}><span class="ic sm">${img("x/"+c.k)}</span><b>${esc(c.tr)}</b>${st?`<span class="xv">${st[2].toFixed(1)}%</span>`:""}</button>`; };
   $("egrid").innerHTML='<span class="eh"></span><span class="eh">+ 뒤집개</span><span class="eh">+ 프라이팬</span>'+
     C.map(c=>`<span class="ec">${compIc(c[0],1)}<span class="nm">${esc(c[1])}</span></span>${cell(cells[c[0]+"|뒤집개"])}${cell(cells[c[0]+"|프라이팬"])}`).join("");
 }
-// touch screens have no hover: tapping anything with a hover description shows it for a moment
-let tipT=null;
-document.addEventListener("click",e=>{ if(!(window.matchMedia&&matchMedia("(hover: none)").matches))return;
-  const t=e.target.closest(".ichip,.ic[title]"); if(!t||!t.title)return;
-  let box=document.querySelector(".tipbox"); if(!box){box=document.createElement("div"); box.className="tipbox"; box.setAttribute("role","status"); document.body.appendChild(box);}
-  box.textContent=t.title; box.hidden=false; clearTimeout(tipT); tipT=setTimeout(()=>{box.hidden=true;},3500); });
+// one small card for every [data-tn]: follows the mouse on desktop, shows on tap on touch screens
+const hov=document.createElement("div"); hov.className="hovtip"; hov.hidden=true; hov.setAttribute("role","tooltip"); document.body.appendChild(hov);
+let hovT=null;
+function showTip(t){
+  hov.innerHTML=`<b>${esc(t.dataset.tn)}</b>${t.dataset.td?`<span>${esc(t.dataset.td)}</span>`:""}${t.dataset.tr?`<span class="r">${esc(t.dataset.tr)}</span>`:""}`;
+  hov.hidden=false; const r=t.getBoundingClientRect(), w=hov.offsetWidth, h=hov.offsetHeight;
+  let x=Math.min(Math.max(8,r.left+r.width/2-w/2),innerWidth-w-8), y=r.top-h-8; if(y<8)y=r.bottom+8;
+  hov.style.left=x+"px"; hov.style.top=y+"px";
+}
+const touchOnly=()=>window.matchMedia&&matchMedia("(hover: none)").matches;
+document.addEventListener("mouseover",e=>{ if(touchOnly())return; const t=e.target.closest("[data-tn]"); if(t)showTip(t); else hov.hidden=true; });
+document.addEventListener("click",e=>{ if(!touchOnly())return; const t=e.target.closest("[data-tn]"); if(!t){hov.hidden=true;return;} showTip(t); clearTimeout(hovT); hovT=setTimeout(()=>{hov.hidden=true;},3500); });
+addEventListener("scroll",()=>{hov.hidden=true;},{passive:true});
 function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); }
 function touched(){ state.example=false; save(); }
 function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
