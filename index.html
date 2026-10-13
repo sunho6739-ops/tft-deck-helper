@@ -200,30 +200,6 @@ button.tile.sp0{color:var(--muted)}
 .resetb:disabled{opacity:.4;cursor:default}
 .resetb .cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .resetb .cnt:empty{display:none}
-.plan{position:sticky;top:12px;z-index:5;background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
-.plan .ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.plan .ph b{font-family:var(--display);font-weight:400;font-size:22px}
-.plan .pavg{font-size:14px;color:var(--accent);font-variant-numeric:tabular-nums}
-.plan .ph .pinb{margin-left:auto}
-.plan .prow2{display:grid;grid-template-columns:4.2em auto auto minmax(0,1fr);gap:8px 14px;align-items:center}
-.plan .prow2>.pus{grid-column:2/-1}
-.plan .pl2{padding-left:18px;border-left:1px solid var(--line)}
-.plan .pl{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.02em}
-.plan .pus,.plan .pits{display:flex;flex-wrap:wrap;gap:6px}
-.plan .pu{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;background:none;border:0;padding:0;color:var(--fg)}
-.plan .pu .pt{width:44px;height:44px}
-.plan .pu.key .pt{box-shadow:0 0 0 2px var(--accent)}
-.plan .pu.has .pt{opacity:.6}
-.plan .pn{font-size:12px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58px}
-.plan .pg{font-size:10.5px;color:var(--muted);display:flex;gap:3px;line-height:1.1;white-space:nowrap}
-.plan .pg em{font-style:normal;color:var(--accent)}
-.plan .pit{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted)}
-.plan .pit .ic{width:34px;height:34px}
-.plan .pit.now small{color:var(--ok);font-weight:600}
-.plan .plv{display:flex;flex-wrap:wrap;gap:6px}
-.plan .plv span{background:var(--raised);border-radius:6px;padding:2px 8px;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
-.plan .plv b{color:var(--fg);margin-right:5px}
-@media (max-width:1000px){.plan{position:static}.plan .prow2{grid-template-columns:4.2em minmax(0,1fr)}.plan .pl2{grid-column:1}}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -453,7 +429,6 @@ a{color:var(--accent)}
         <button type="button" data-sort="win" aria-pressed="false">승률 순 · 1등 비율</button>
       </div>
       <p class="meta" id="sortnote" hidden></p>
-      <div id="plan" class="plan" hidden></div>
       <div id="decks" style="display:flex;flex-direction:column;gap:16px"></div>
     </section>
     <section>
@@ -861,7 +836,7 @@ function renderDecks(){
   $("sortnote").innerHTML=!stat?(mode==="strong"?"<b>이번 패치 센 덱 TOP 5</b> · 아직 고른 것이 없어서 18.4b 평균 등수가 좋은 덱을 보여줍니다. 가진 기물을 고르면 갈 수 있는 덱으로 좁혀집니다.":mode==="weak"?"<b>아직 덱을 정하기엔 일러요.</b> 1코처럼 흔한 기물만으로는 신호가 약해서, 갈 만한 덱을 평균 등수가 좋은 순서로 보여줍니다. 2코·3코 2성이나 4코가 생기면 다시 보세요.":"가진 기물로 갈 수 있는 덱만 골라 <b>이번 패치 평균 등수가 좋은 순서</b>로 보여줍니다. 잘 안 나오는 기물(3·4코, 2성)일수록 크게 보고, 많은 덱이 쓰는 흔한 기물은 작게 봅니다."):`롤체지지 메타 통계(패치 18.4b 최근 2일, 마스터 이상, 약 6만 3천 판)에서 구성이 비슷한 덱의 수치입니다. 통계에 짝이 없는 덱 ${D.length-res.length}개는 이 순서에서 빠집니다. 내 기물은 순서에 반영되지 않습니다.`;
   if(!top.length&&mode==="fit"){
     $("decks").innerHTML=`<div class="none"><svg class="masc sm" viewBox="0 0 140 140" aria-hidden="true"><use href="#masc"/></svg><b>${empty?"아직 고른 것이 없습니다":"딱 맞는 덱이 없습니다"}</b><p>${empty?"왼쪽에서 가진 기물, 아이템 재료, 상징·유물을 고르면 거기에 맞는 덱만 여기에 나옵니다.":"지금 고른 것만으로는 어울리는 덱을 정하기 어렵습니다. 가진 기물을 더 골라 보세요."}</p><p class="meta">무엇을 갈지 감이 없다면 위의 「강한 순」이나 「승률 순」을 눌러 보세요.</p></div>`;
-    state.shown=[]; renderPlan(null); $("bartop").textContent=empty?"기물을 고르세요":"맞는 덱 없음"; $("barlabel").textContent="추천 덱"; return; }
+    state.shown=[]; $("bartop").textContent=empty?"기물을 고르세요":"맞는 덱 없음"; $("barlabel").textContent="추천 덱"; return; }
   $("decks").innerHTML=top.map((r,ix)=>{
     const d=r.d, df=DIFF[d.d], first=ix===0;
     const role=id=>id===d.c?"캐리":id===d.t?"탱커":"";
@@ -900,7 +875,6 @@ function renderDecks(){
       <ul class="whyl">${why(r).map(x=>`<li>${x}</li>`).join("")}</ul>${body}
     </article>`;}).join("")+`<div class="more">${top.length<res.length+(pinR?1:0)&&state.count<D.length?`<button type="button" class="go" data-more="5">덱 5개 더 보기</button>`:""}${state.count>5?`<button type="button" class="pinb" data-more="-99">5개만 보기</button>`:""}<button type="button" class="pinb" data-foldall="1">모두 접기</button><button type="button" class="pinb" data-foldall="0">모두 펼치기</button><span class="meta">${top.length}개 표시 중 · ${stat?`통계가 있는 덱 ${totalFit}개`:`맞는 덱 ${totalFit}개 (전체 ${D.length}개 중)`}</span></div>`;
   state.shown=top.map(r=>r.d.k);
-  renderPlan(mode==="strong"?null:top[0]);
   $("bartop").textContent=top[0].d.n;
   $("barlabel").textContent=pinR?"고정한 덱":"지금 1순위";
 }
@@ -1134,35 +1108,6 @@ const touchOnly=()=>window.matchMedia&&matchMedia("(hover: none)").matches;
 document.addEventListener("mouseover",e=>{ if(touchOnly())return; const t=e.target.closest("[data-tn]"); if(t)showTip(t); else hov.hidden=true; });
 document.addEventListener("click",e=>{ if(!touchOnly())return; const t=e.target.closest("[data-tn]"); if(!t){hov.hidden=true;return;} showTip(t); clearTimeout(hovT); hovT=setTimeout(()=>{hov.hidden=true;},3500); });
 addEventListener("scroll",()=>{hov.hidden=true;},{passive:true});
-// the always-visible plan for the deck at the top: what to buy, what to build, what to grab at the carousel
-function renderPlan(r){
-  const el=$("plan"); if(!r){el.hidden=true; el.innerHTML=""; return;}
-  const d=r.d, fin=Object.fromEntries(d.b.map(x=>[x[0],x[1]])), hold=new Set(d.holders.map(h=>h[0]));
-  const lv=id=>state.owned.has(id)?(state.lv[id]||1):0;
-  let stageList=[]; for(const [nm,list] of d.stages){ if(list.some(id=>!state.owned.has(id))){stageList=list;break;} }
-  const pri=id=>id===d.c?0:id===d.t?1:fin[id]===3?2:hold.has(id)?3:fin[id]?4:5;
-  const want=[...new Set(stageList.concat(d.ids))].filter(id=>lv(id)<(fin[id]||1));
-  want.sort((a,b)=>pri(a)-pri(b)||UM[b].cost-UM[a].cost);
-  const unit=id=>{const L=lv(id), goal=fin[id]||1, tag=id===d.c?"캐리":id===d.t?"탱커":d.temp.includes(id)?"임시":"";
-    return `<button type="button" class="pu${L?" has":""}${pri(id)<=2?" key":""}" data-plan="${id}"${tipA(UM[id].ko,`${UM[id].cost}코스트 · ${UM[id].traits.join(", ")}`,L?`지금 ${L}성 · 목표 ${goal}성 · 누르면 별 하나 올림`:`목표 ${goal}성 · 누르면 보유로 표시`)}>
-      ${unitPt(id)}<span class="pn">${esc(UM[id].ko)}</span><span class="pg">${tag?`<em>${tag}</em>`:""}${L?`${L}→${goal}★`:goal>1?`${goal}★`:""}</span></button>`;};
-  const items=r.rows.flatMap(row=>row.items.filter(o=>o.st==="now").map(o=>({o,id:row.id,now:true})))
-    .concat(r.rows.flatMap(row=>row.items.filter(o=>o.st==="half").map(o=>({o,id:row.id,now:false})))).slice(0,4);
-  const car=carousel(r).slice(0,2);
-  const lvl=LV[d.lv];
-  el.innerHTML=`<div class="ph"><span class="pl">지금 목표</span><b>${esc(d.n)}</b>${d.s?`<span class="pavg">평균 ${d.s[0].toFixed(2)}등</span>`:""}<button type="button" class="pinb" data-jump="${d.k}">덱 카드 보기 ↓</button></div>
-    <div class="prow2"><span class="pl">살 기물</span><div class="pus">${want.length?want.slice(0,9).map(unit).join(""):'<span class="meta">필요한 기물을 다 모았어요. 이제 별을 올리세요.</span>'}</div></div>
-    <div class="prow2"><span class="pl">아이템</span><div class="pits">${items.length?items.map(x=>`<span class="pit${x.now?" now":""}">${anyIc(x.o.n)}<small>${x.now?"지금 조합":"+"+CM[x.o.need]}</small></span>`).join(""):'<span class="meta">아직 만들 수 있는 핵심 아이템이 없어요</span>'}</div>
-      ${car.length?`<span class="pl pl2">초밥</span><div class="pits">${car.map((x,i)=>`<span class="pit${i===0?" now":""}"${tipA(CM[x.c],x.fin?`집으면 ${x.n} 완성 (${UM[x.id].ko})`:`${x.n} 재료 (${UM[x.id].ko})`,"")}>${compIc(x.c)}<small>${i+1}순위</small></span>`).join("")}</div>`:""}</div>
-    <div class="prow2"><span class="pl">레벨업</span><div class="plv">${lvl.map(([a,b])=>`<span><b>${b}</b>${esc(a)}</span>`).join("")}</div></div>`;
-  el.hidden=false;
-}
-$("plan").addEventListener("click",e=>{
-  const j=e.target.closest("[data-jump]"); if(j){const c=document.querySelector(`#decks [data-fold="${j.dataset.jump}"]`); (c?c.closest("article"):$("decks")).scrollIntoView({block:"start"}); return;}
-  const b=e.target.closest("[data-plan]"); if(!b)return; const id=b.dataset.plan; clearExample();
-  if(!state.owned.has(id))state.owned.add(id); else state.lv[id]=Math.min(3,(state.lv[id]||1)+1);
-  touched(); renderAll();
-});
 function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); paintResets(); }
 function touched(){ state.example=false; save(); }
 function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
