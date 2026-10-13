@@ -162,6 +162,8 @@ button.tile.sp0{color:var(--muted)}
 .xhead{display:flex;gap:12px;align-items:center}
 .xhead .ic{width:44px;height:44px}
 .xhead h3{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.2}
+.ichip{display:inline-flex;align-items:center;gap:5px;cursor:help;white-space:nowrap}
+.ichip .ic{flex:none}
 .xbest{background:var(--raised);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .xbest .lab{font-family:var(--display);font-size:17px;color:var(--accent)}
 .xbest .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14.5px}
@@ -657,7 +659,17 @@ let HASIMG=false;
 const src=p=>IMGMODE==="local"&&!p.startsWith("x/")?p:REMOTE[p]?CDN+REMOTE[p]:"";
 const img=p=>HASIMG&&src(p)?`<img src="${src(p)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
 const unitPt=(id,extra="")=>`<span class="pt">${esc(UM[id].ko[0])}${img("c/"+id+".jpg")}${extra}</span>`;
-const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}">${IFILE[n]?img("i/"+IFILE[n]):""}</span>`;
+// short hover text for items (my own one-line summaries of the in-game effects) plus the recipe
+const ITIP={"죽음의 검": "공격력과 피해량을 올려 주는 순수 딜 아이템", "거인 학살자": "체력이 많은 적(탱커)에게 피해가 더 들어감", "마법공학 총검": "입힌 피해 일부로 체력이 낮은 아군을 회복", "쇼진의 창": "기본 공격마다 마나를 더 얻어 스킬을 자주 씀", "밤의 끝자락": "체력이 낮아지면 잠깐 저지 불가가 되고 회복", "피바라기": "피해 흡혈, 체력이 반쯤 깎이면 보호막", "스테락의 도전": "체력이 깎이면 보호막과 공격력을 얻음", "무한의 대검": "치명타가 늘고 스킬에도 치명타가 터짐(정밀)", "붉은 덩굴정령": "공격 속도, 적에게 화상과 상처(회복 감소)", "구인수의 격노검": "싸울수록 공격 속도가 계속 쌓임", "공허의 지팡이": "스킬로 적의 마법 저항력을 깎음", "거인의 결의": "때리거나 맞을수록 공격력·주문력이 쌓이고, 다 쌓이면 단단해짐", "크라켄의 분노": "기본 공격이 옆의 적도 같이 때림", "내셔의 이빨": "기본 공격할 때 마나를 더 얻음", "최후의 속삭임": "공격한 적의 방어력을 깎음(파열)", "라바돈의 죽음모자": "주문력과 피해량을 크게 올림", "대천사의 지팡이": "전투 중 시간이 지날수록 주문력이 오름", "크라운가드": "시작할 때 큰 보호막, 보호막이 끝나면 주문력", "이온 충격기": "주변 적의 마법 저항력을 깎고 스킬 쓰는 적에게 피해", "모렐로노미콘": "적에게 화상과 상처(회복 감소)", "보석 건틀릿": "주문력, 스킬에도 치명타가 터짐(정밀)", "푸른 파수꾼": "마나 회복을 도와 스킬을 더 자주 씀", "수호자의 맹세": "시작 마나, 체력이 낮아지면 마나와 보호막", "적응형 투구": "마나를 더 얻고, 탱커면 방어력·마법 저항력, 딜러면 공격력·주문력", "정령의 형상": "받는 피해를 줄이고(내구력) 체력을 회복", "정의의 손길": "공격력·주문력과 모든 피해 흡혈", "덤불 조끼": "기본 공격 피해를 덜 받고 주변 적에게 피해", "가고일 돌갑옷": "맞을수록 방어력·마법 저항력이 쌓임", "태양불꽃 망토": "주변 적에게 화상과 상처(회복 감소)", "굳건한 심장": "받는 피해를 줄여 줌(내구력)", "용의 발톱": "체력을 올리고 주기적으로 회복", "저녁갑주": "주변 적의 방어력을 깎고 전투 초반 단단해짐", "수은": "전투 초반 군중 제어에 면역, 공격 속도가 쌓임", "워모그의 갑옷": "체력을 크게 올림", "타격대의 철퇴": "치명타가 터질수록 피해량이 쌓임", "도적의 장갑": "매 라운드 무작위 아이템 2개 (아이템 칸 3개 차지)"};
+function itemTitle(n){
+  const k=typeof N2K!=="undefined"?N2K[n]:null; let t=ITIP[n]||"";
+  if(!t&&k){const a=ART.find(x=>x[0]===k); t=a?a[3]:(EMBTIP[n.replace(/ 상징$/,"")]||"");}
+  const rc=I[n]?I[n].map(c=>CM[c]).join(" + "):(SPECIAL[n]||"");
+  return n+(t?" · "+t:"")+(rc?" (재료: "+rc+")":"");
+}
+const itemIc=(n,sm)=>`<span class="ic${sm?" sm":""}" title="${esc(itemTitle(n))}">${IFILE[n]?img("i/"+IFILE[n]):""}</span>`;
+// icon + name, both hoverable; emblems/artifacts use their own icon set
+const itemChip=n=>{const k=typeof N2K!=="undefined"?N2K[n]:null; const ic=k&&!IFILE[n]?`<span class="ic sm" title="${esc(itemTitle(n))}">${img("x/"+k)}</span>`:itemIc(n,1); return `<span class="ichip" title="${esc(itemTitle(n))}">${ic}${esc(n)}</span>`;};
 const compIc=(c,sm)=>`<span class="ic${sm?" sm":""}">${img("i/"+CFILE[c])}</span>`;
 const recipe=r=>`${compIc(r[0],1)}${CM[r[0]]} + ${compIc(r[1],1)}${CM[r[1]]}`;
 
@@ -862,12 +874,12 @@ function xBest(k){
 }
 function bestHtml(k){
   const L=xBest(k); if(!L.length)return "";
-  const its=a=>a.map(n=>`${itemIc(n,1)}<b>${esc(n)}</b>`).join(" + ");
+  const its=a=>a.map(n=>`<b>${itemChip(n)}</b>`).join(" + ");
   const a=L[0];
   return `<div class="xbest"><span class="lab">이렇게 쓰세요</span>
     <div class="row">${mini(a.ch)}에게 · 나머지 두 칸 ${its(a.others)}</div>
     <div class="row"><span class="meta">${a.plays?`이 기물이 든 판 평균 ${a.avg.toFixed(2)}등 · ${a.plays.toLocaleString("ko-KR")}판 · `:""}근거: ${esc(a.src)}</span></div>
-    ${L.slice(1,3).map(b=>`<div class="alt">다른 선택: ${mini(b.ch)} + ${b.others.map(esc).join(", ")}${b.plays?` · 평균 ${b.avg.toFixed(2)}등`:""}</div>`).join("")}
+    ${L.slice(1,3).map(b=>`<div class="alt">다른 선택: ${mini(b.ch)} + ${b.others.map(itemChip).join(", ")}${b.plays?` · 평균 ${b.avg.toFixed(2)}등`:""}</div>`).join("")}
   </div>`;
 }
 // what each emblem actually does for the holder and how to use it (effects from the dak.gg/LoLCHESS.GG trait data, usage notes are mine)
@@ -879,7 +891,7 @@ function renderSpecial(kind){
   const key=x=>{const st=ISTAT[x.k]; return st?(byWin?-st[2]:st[0]):99;};
   const ranked=list.slice().sort((a,b)=>key(a)-key(b)); const rankOf=Object.fromEntries(ranked.map((x,i)=>[x.k,i+1]));
   const dk=d=>`<button type="button" class="dk" data-open="${d.k}">${esc(d.n)}${d.s?`<em>평균 ${d.s[0].toFixed(2)}등</em>`:""}</button>`;
-  const its=a=>a.map(n=>`${N2K[n]?`<span class="ic sm">${img("x/"+N2K[n])}</span>`:itemIc(n,1)}${n}`).join(", ");
+  const its=a=>a.map(itemChip).join(", ");
   const line=r=>{
     if(r.t==="S")return `<li><span class="st now">통계</span><span><b>${esc(r.sn)}</b> · 평균 ${r.avg.toFixed(2)}등 · 1등 ${r.win}% · 4등 안 ${r.top}% · ${r.plays.toLocaleString("ko-KR")}판<br>같이 든 아이템: ${its(r.others)}${r.decks.length?`<br>비슷한 공략 덱: ${r.decks.map(dk).join(" ")}`:""}</span></li>`;
     if(r.t==="T")return `<li><span class="st now">통계</span><span>이 기물이 든 판 ${r.plays.toLocaleString("ko-KR")}판(${Math.round(r.share*100)}%) · 평균 ${r.avg.toFixed(2)}등${r.decks.length?`<br>이 기물이 아이템을 드는 덱: ${r.decks.map(dk).join(" ")}`:""}</span></li>`;
