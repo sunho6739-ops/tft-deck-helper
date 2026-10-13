@@ -377,7 +377,7 @@ a{color:var(--accent)}
         <label class="toggle" id="easywrap"><input type="checkbox" id="easy" checked> 쉬운 덱 먼저</label>
       </div>
       <div class="seg" role="group" aria-label="추천 순서">
-        <button type="button" data-sort="fit" aria-pressed="true">내 기물에 맞는 순</button>
+        <button type="button" data-sort="fit" aria-pressed="true">추천 순 · 갈 수 있는 덱 중 센 순</button>
         <button type="button" data-sort="avg" aria-pressed="false">강한 순 · 평균 등수</button>
         <button type="button" data-sort="win" aria-pressed="false">승률 순 · 1등 비율</button>
       </div>
@@ -574,14 +574,32 @@ const ATIP={"약간 신비한 주사위":["주사위를 굴려 나온 결과대�
 const NDECK=Object.keys(AUGI).length;
 // how much a held augment says about the deck: almost nothing if every guide lists it, a lot if only a few do
 const augW=a=>a.decks.length<=5?1.5:a.decks.length<=15?0.5:0;
+// how much an owned unit says about a deck: rare (high cost) and upgraded (2/3-star) units say a lot,
+// units that most decks use say little. Starting weights, tuned with the early-board simulation.
+const SIG_COST={1:1,2:1.5,3:2.5,4:4,5:5};
+const SIG_STAR=[null,{1:1,2:1,3:1,4:1,5:1},{1:1.3,2:1.8,3:2.5,4:3,5:3},{1:2,2:3,3:4,4:5,5:5}];
+let DFC=null;
+function unitDF(id){ if(!DFC){DFC={}; D.forEach(d=>new Set([...d.ids,...d.e5,...d.e6,...d.e7]).forEach(x=>DFC[x]=(DFC[x]||0)+1));} return DFC[id]||1; }
+const idf=id=>0.4+0.6*Math.log(D.length/unitDF(id))/Math.log(D.length);
+const sigOf=(id,st)=>SIG_COST[UM[id].cost]*SIG_STAR[st||1][UM[id].cost]*idf(id);
+const sigWord=v=>v>=4?"강한 신호":v>=2?"보통 신호":"약한 신호";
+// fit is only a gate ("can I realistically go this deck?"); strength comes from the patch stats
+const fitCut=best=>Math.max(2.5,best*0.45);
+const deckAvg=d=>d.s&&d.s[3]>=1000?d.s[0]:4.6; // decks without enough games sit a little below the middle
 function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   const w=id=>star[id]||1;
   const hold=new Set(d.holders.map(h=>h[0]));
+  const fin=Object.fromEntries(d.b.map(x=>[x[0],x[1]]));
   const inB=d.ids.filter(id=>owned.has(id));
   const inE=d.e5.filter(id=>owned.has(id)&&!d.ids.includes(id));
   const inM=[...new Set([...d.e6,...d.e7])].filter(id=>owned.has(id)&&!d.ids.includes(id)&&!d.e5.includes(id));
-  let s=0; inB.forEach(id=>{s+=(id===d.c?3 : hold.has(id)?2 : 1.5)*w(id);});
-  inE.forEach(id=>{s+=1.2*w(id);}); inM.forEach(id=>{s+=0.8*w(id);});
+  const role=id=>id===d.c?1.5:(id===d.t||hold.has(id))?1.2:fin[id]===3?1.3:1;
+  const sig=inB.map(id=>({id,v:sigOf(id,w(id))*role(id),fin:true})).concat(inE.concat(inM).map(id=>({id,v:sigOf(id,w(id))*0.6,fin:false}))).sort((a,b)=>b.v-a.v);
+  let s=sig.reduce((a,x)=>a+x.v,0);
+  // reroll decks only make sense once their low-cost core is actually upgrading
+  if(d.st[0]==="r"){ const tg=d.b.filter(x=>x[1]===3).map(x=>x[0]);
+    const ok=(owned.has(d.c)&&w(d.c)>=2&&UM[d.c].cost<=3)||tg.filter(id=>owned.has(id)&&w(id)>=2).length>=2;
+    s=ok?s+2.5:s*0.5; }
   let fit=s;
   const seen=new Set([...d.ids,...d.e5,...d.e6,...d.e7]);
   const near=[...owned].filter(id=>!seen.has(id)&&UM[id].traits.some(t=>d.core.includes(t)));
@@ -599,9 +617,9 @@ function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   augUse.forEach(a=>{const v=augW(a); s+=v; if(v>=1.5)fit+=v;});
   const caOk=!!(d.ca&&aug&&aug.has(d.ca)); if(caOk){s+=3; fit+=3;}
   if(d.ca&&!caOk){fit=0; s-=3;} // a deck that only works with one augment is not suggested until that augment is picked
-  if(d.cond&&!caOk&&!spUse.some(x=>x.t==="M"))s-=1;
+  if(d.cond&&!caOk&&!spUse.some(x=>x.t==="M")){s-=1; fit=0;} // conditional decks only once the emblem/artifact/augment is held
   if(easy){ if(d.d==="H")s-=1.5; if(d.d==="E")s+=0.5; }
-  return {d,s,inB,inE:inE.concat(inM),near,rows,now,half,spUse,augUse,fit};
+  return {d,s,inB,inE:inE.concat(inM),near,rows,now,half,spUse,augUse,fit,sig};
 }
 function recommend(owned, inv, easy, star, sp, aug){
   return D.map((d,i)=>({...scoreDeck(d,owned,inv,easy,star,sp,aug),i})).sort((a,b)=>b.s-a.s||a.i-b.i);
@@ -672,6 +690,8 @@ function itemRow(o,to){
   return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${recipe(o.r)}</small></span><span class="st ${cls}">${txt}</span></li>`;}
 function why(r){
   const p=[], d=r.d, all=r.inB.concat(r.inE);
+  if(r.sig&&r.sig.length)p.push("덱을 고른 근거: "+r.sig.slice(0,4).map(x=>`<b>${UM[x.id].ko}</b> ${UM[x.id].cost}코${state.lv[x.id]?" "+state.lv[x.id]+"성":""}(${unitDF(x.id)>=10&&x.v<2?"흔한 기물":sigWord(x.v)})`).join(", "));
+  if(d.s)p.push(`이번 패치 평균 <b>${d.s[0].toFixed(2)}등</b>${d.s[3]<1000?" (표본 적음)":""}입니다.`);
   const up=all.filter(id=>state.lv[id]).map(id=>UM[id].ko+" "+state.lv[id]+"성"+(id===d.c?"(캐리)":id===d.t?"(탱커)":""));
   if(up.length)p.push(`이미 키운 <b>${up.join(", ")}</b>을(를) 그대로 씁니다.`);
   if(r.inB.length)p.push(`<b>${r.inB.map(id=>UM[id].ko).join(", ")}</b>은(는) 완성 보드까지 갑니다.`);
@@ -724,16 +744,22 @@ function renderDecks(){
   const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean)&&!state.sp.size&&!state.aug.size;
   const stat=state.sort!=="fit";
   if(stat){res=res.filter(r=>r.d.s).sort((a,b)=>state.sort==="avg"?a.d.s[0]-b.d.s[0]||b.s-a.s:b.d.s[1]-a.d.s[1]||b.s-a.s);}
-  else{ // only decks that really use what the player holds: at least one unit's worth, and not far behind the best match
-    const bestFit=Math.max(0,...res.map(r=>r.fit)); const cut=Math.max(1.5,bestFit*0.4);
-    res=empty?[]:res.filter(r=>r.fit>=cut); }
+  let mode="fit";
+  if(!stat){ // decks I can realistically go, ordered by this patch's average placement; a very good match moves up a little
+    const bestFit=Math.max(0,...res.map(r=>r.fit)); const cut=fitCut(bestFit);
+    const cand=res.filter(r=>r.fit>=cut);
+    const key=r=>deckAvg(r.d)-0.35*Math.min(1,r.fit/bestFit)+(state.easy?(r.d.d==="H"?0.15:r.d.d==="E"?-0.1:0):0);
+    const strong=()=>res.filter(r=>r.d.s&&r.d.s[3]>=1000&&!r.d.cond&&!r.d.ca).sort((a,b)=>a.d.s[0]-b.d.s[0]);
+    if(empty){mode="strong"; res=strong().slice(0,5);}
+    else if(bestFit<4||!cand.length){mode="weak"; res=cand.length?cand.sort((a,b)=>key(a)-key(b)):strong().slice(0,5);}
+    else res=cand.sort((a,b)=>key(a)-key(b)); }
   const totalFit=res.length;
   const pinR=state.pin?recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug).find(r=>r.d.k===state.pin):null;
   const top=(pinR?[pinR]:[]).concat(res.filter(r=>!pinR||r.d.k!==pinR.d.k).slice(0,state.count));
   $("easywrap").hidden=stat;
-  $("sortnote").hidden=!stat;
-  $("sortnote").textContent=stat?`롤체지지 메타 통계(패치 18.4b 최근 2일, 마스터 이상, 약 6만 3천 판)에서 구성이 비슷한 덱의 수치입니다. 통계에 짝이 없는 덱 ${D.length-res.length}개는 이 순서에서 빠집니다. 내 기물은 순서에 반영되지 않습니다.`:"";
-  if(!top.length){
+  $("sortnote").hidden=false;
+  $("sortnote").innerHTML=!stat?(mode==="strong"?"<b>이번 패치 센 덱 TOP 5</b> · 아직 고른 것이 없어서 18.4b 평균 등수가 좋은 덱을 보여줍니다. 가진 기물을 고르면 갈 수 있는 덱으로 좁혀집니다.":mode==="weak"?"<b>아직 덱을 정하기엔 일러요.</b> 1코처럼 흔한 기물만으로는 신호가 약해서, 갈 만한 덱을 평균 등수가 좋은 순서로 보여줍니다. 2코·3코 2성이나 4코가 생기면 다시 보세요.":"가진 기물로 갈 수 있는 덱만 골라 <b>이번 패치 평균 등수가 좋은 순서</b>로 보여줍니다. 잘 안 나오는 기물(3·4코, 2성)일수록 크게 보고, 많은 덱이 쓰는 흔한 기물은 작게 봅니다."):`롤체지지 메타 통계(패치 18.4b 최근 2일, 마스터 이상, 약 6만 3천 판)에서 구성이 비슷한 덱의 수치입니다. 통계에 짝이 없는 덱 ${D.length-res.length}개는 이 순서에서 빠집니다. 내 기물은 순서에 반영되지 않습니다.`;
+  if(!top.length&&mode==="fit"){
     $("decks").innerHTML=`<div class="none"><svg class="masc sm" viewBox="0 0 140 140" aria-hidden="true"><use href="#masc"/></svg><b>${empty?"아직 고른 것이 없습니다":"딱 맞는 덱이 없습니다"}</b><p>${empty?"왼쪽에서 가진 기물, 아이템 재료, 상징·유물을 고르면 거기에 맞는 덱만 여기에 나옵니다.":"지금 고른 것만으로는 어울리는 덱을 정하기 어렵습니다. 가진 기물을 더 골라 보세요."}</p><p class="meta">무엇을 갈지 감이 없다면 위의 「강한 순」이나 「승률 순」을 눌러 보세요.</p></div>`;
     state.shown=[]; $("bartop").textContent=empty?"기물을 고르세요":"맞는 덱 없음"; $("barlabel").textContent="추천 덱"; return; }
   $("decks").innerHTML=top.map((r,ix)=>{
@@ -770,7 +796,7 @@ function renderDecks(){
     return `<article class="deck${first&&!pinR?" top":""}${pinned?" pinned":""}">
       <div class="decktitle">${rank}<span class="name">${esc(d.n)}</span>
       <div class="tags"><span class="tag ${df[1]}">난이도 ${df[0]}</span><span class="tag">${STYLE[d.st]}</span>${d.cond?`<span class="tag hard">조건부</span>`:""}${d.core.map(t=>`<span class="tag">${t}</span>`).join("")}</div><span class="acts"><button type="button" class="pinb${pinned?" on":""}" data-pin="${d.k}">${pinned?"고정 해제":"이 덱으로 고정"}</button>${foldBtn}</span></div>
-      ${d.s?`<div class="stats" title="롤체지지 통계 덱 「${esc(d.s[4])}」 기준"><span class="${state.sort==="avg"?"hi":""}"><b>${d.s[0].toFixed(2)}</b>평균 등수</span><span class="${state.sort==="win"?"hi":""}"><b>${d.s[1].toFixed(1)}%</b>1등</span><span><b>${d.s[2].toFixed(1)}%</b>4등 안</span><span>${d.s[3].toLocaleString("ko-KR")}판 · 통계 덱 「${esc(d.s[4])}」</span></div>`:`<p class="meta">이 덱은 롤체지지 메타 통계에 짝이 되는 덱이 없습니다.</p>`}
+      ${d.s?`<div class="stats" title="롤체지지 통계 덱 「${esc(d.s[4])}」 기준"><span class="${state.sort==="avg"?"hi":""}"><b>${d.s[0].toFixed(2)}</b>평균 등수</span><span class="${state.sort==="win"?"hi":""}"><b>${d.s[1].toFixed(1)}%</b>1등</span><span><b>${d.s[2].toFixed(1)}%</b>4등 안</span><span>${d.s[3].toLocaleString("ko-KR")}판${d.s[3]<1000?" · 표본 적음":""} · 통계 덱 「${esc(d.s[4])}」</span></div>`:`<p class="meta">이 덱은 롤체지지 메타 통계에 짝이 되는 덱이 없습니다.</p>`}
       <ul class="whyl">${why(r).map(x=>`<li>${x}</li>`).join("")}</ul>${body}
     </article>`;}).join("")+`<div class="more">${top.length<res.length+(pinR?1:0)&&state.count<D.length?`<button type="button" class="go" data-more="5">덱 5개 더 보기</button>`:""}${state.count>5?`<button type="button" class="pinb" data-more="-99">5개만 보기</button>`:""}<button type="button" class="pinb" data-foldall="1">모두 접기</button><button type="button" class="pinb" data-foldall="0">모두 펼치기</button><span class="meta">${top.length}개 표시 중 · ${stat?`통계가 있는 덱 ${totalFit}개`:`맞는 덱 ${totalFit}개 (전체 ${D.length}개 중)`}</span></div>`;
   state.shown=top.map(r=>r.d.k);
@@ -870,7 +896,7 @@ function augTargets(){
   if(state.pin){const r=res.find(x=>x.d.k===state.pin); if(r)return {pin:true,list:[r]};}
   const has=state.owned.size||Object.values(state.inv).some(Boolean)||state.sp.size||state.aug.size;
   if(!has||state.example)return {pin:false,list:[]};
-  const best=Math.max(0,...res.map(r=>r.fit)), cut=Math.max(1.5,best*0.4);
+  const best=Math.max(0,...res.map(r=>r.fit)), cut=fitCut(best);
   return {pin:false,list:res.filter(r=>r.fit>=cut).slice(0,3)};
 }
 function judgeOffer(){
