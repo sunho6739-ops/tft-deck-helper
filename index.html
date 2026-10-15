@@ -257,6 +257,12 @@ button.tile.sp0{color:var(--muted)}
 .rank{font-family:var(--display);font-size:16px;color:var(--accent)}
 .name{font-family:var(--display);font-size:26px;line-height:1.15}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag.needno{border-color:var(--warn);color:var(--warn);font-weight:600}.tag.needok{border-color:var(--ok);color:var(--ok);font-weight:600}
+.need{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin:8px 0 4px;padding:8px 12px;border-radius:8px;border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent);font-size:14px}
+.need>b{color:var(--warn)}.need.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent)}.need.ok>b{color:var(--ok)}
+.need .or{color:var(--muted);font-size:13px}.need .nn{display:inline-flex;align-items:center;gap:5px}.need .nn .ic{display:inline-block}
+.need .aic{width:22px;height:22px}
+.dk.lock{border-style:dashed}
 .tag{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
 .tag.easy{color:var(--ok);border-color:var(--ok)}.tag.hard{color:var(--warn);border-color:var(--warn)}
 .whyl{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
@@ -702,6 +708,16 @@ const ISTAT={"ExecutionerEmblem":[4.24,54.6,15.7,21672,[["Zyra",7024,4.22],["Ahr
 const GMEN=["459b9189:KhaZix:A:LudensTempest,LichBane","459b9189:Diana:A:ExecutionerEmblem","459b9189:Ezreal:A:Dawncore,OrnnItemTheCollector","7365c6b0:Zyra:A:ExecutionerEmblem","538b7728:Aphelios:A:OrnnItemTheCollector,RapidFirecannon,Fishbones,Flickerblade","64dc7e78:Draven:A:OrnnItemTheCollector,RapidFirecannon,Fishbones,Flickerblade,ExecutionerEmblem","64dc7e78:TheElderDragon:A:TitanicHydra,SilvermereDawn","9dc355f9:Draven:A:OrnnItemTheCollector,RapidFirecannon,Fishbones,Flickerblade,ExecutionerEmblem","9dc355f9:Ezreal:A:Dawncore,OrnnItemTheCollector","cff64403:Veigar:M:Dawncore","cff64403:Veigar:A:EternalPact,LudensTempest,FloraFatalisEmblem","e6975251:Ahri:A:InvokerEmblem","e6975251:Morgana:A:SpellweaverEmblem,BlightingJewel","b00a6409:Kayle:M:LunarEmblem","b00a6409:Kayle:A:SeekersArmguard,WitsEnd,OrnnItemZhonyasHourglass,Flickerblade","efe61c83:Cassiopeia:A:FloraFatalisEmblem,BlightingJewel,Dawncore","f13e2499:MasterYi:M:WitsEnd","f13e2499:MasterYi:A:HellfireHatchet,RapidFirecannon,Flickerblade,BrawlerEmblem","53129bec:Soraka:A:Dawncore","53129bec:Malphite:A:JuggernautEmblem,MogulsMail","53129bec:Zyra:A:ExecutionerEmblem","4950e442:Ezreal:A:Dawncore,OrnnItemTheCollector","4950e442:Soraka:A:Dawncore","5aa6e80a:Ornn:A:LightshieldCrest,IndomitableGauntlet","c41e1094:Yunara:A:Dawncore","03263242:Sivir:A:OrnnItemTheCollector,Fishbones,Flickerblade","d8c8616e:TheElderDragon:A:TitanicHydra,SilvermereDawn","d8c8616e:Sivir:A:TitanicHydra,SilvermereDawn","d8c8616e:Ashe:A:InfernoEmblem","75694e83:Soraka:A:Dawncore","75694e83:Ezreal:A:Dawncore,OrnnItemTheCollector","75694e83:Gnar:A:BlossomEmblem","9a17135f:Gnar:A:BlossomEmblem","3a3de4a3:Aphelios:A:OrnnItemTheCollector,RapidFirecannon,Fishbones,Flickerblade","3a3de4a3:Brambleback:A:RapidfireEmblem","56ff249a:Sivir:A:OrnnItemTheCollector,Fishbones,Flickerblade","fd963bf1:Warwick:A:HellfireHatchet,TitanicHydra,RapidFirecannon,Mittens","e75f15fa:Kayle:A:SeekersArmguard,WitsEnd,Flickerblade,StatikkShiv,OrnnItemZhonyasHourglass,RapidFirecannon","b07fb3b9:Rengar:A:HellfireHatchet,TitanicHydra","e1f992db:Veigar:M:FloraFatalisEmblem,Dawncore","e1f992db:Veigar:A:EternalPact,LudensTempest","b020a595:Rengar:M:SprykinEmblem,FaeEmblem","b020a595:Tristana:A:OrnnItemTheCollector,Fishbones,Flickerblade","9087c98c:Tristana:A:OrnnItemTheCollector,Fishbones,Flickerblade","9087c98c:Sivir:M:FaeEmblem"];
 const XSUM=[["BlightingJewel","Morgana",["모렐로노미콘","공허의 지팡이"]],["Flickerblade","MasterYi",["수은","밤의 끝자락"]],["WitsEnd","MasterYi",["구인수의 격노검","밤의 끝자락"]],["LichBane","Akali",["밤의 끝자락","보석 건틀릿"]],["SilvermereDawn","Nidalee",["푸른 파수꾼","스테락의 도전"]],["Dawncore","Soraka",["라바돈의 죽음모자","쇼진의 창"]],["BlightingJewel","Cassiopeia",["대천사의 지팡이","마법공학 총검"]],["Dawncore","Veigar",["푸른 파수꾼","보석 건틀릿"]],["Flickerblade","Kayle",["마법사의 최후","구인수의 격노검"]],["WitsEnd","Kayle",["명멸검","구인수의 격노검"]],["FaeEmblem","Rengar",["날렵이 상징","거인의 결의"]],["SprykinEmblem","Rengar",["요정 상징","거인의 결의"]],["DefenderEmblem","Rengar",["구인수의 격노검","거인의 결의"]],["BrawlerEmblem","MasterYi",["밤의 끝자락","구인수의 격노검"]],["RapidfireEmblem","Brambleback",["밤의 끝자락","수은"]],["HunterEmblem","Nidalee",["쇼진의 창","스테락의 도전"]],["ExecutionerEmblem","Zyra",["쇼진의 창","공허의 지팡이"]],["InvokerEmblem","Ahri",["보석 건틀릿","라바돈의 죽음모자"]],["ElderwoodEmblem","Aphelios",["구인수의 격노검","죽음의 검"]],["ExecutionerEmblem","Draven",["구인수의 격노검","크라켄의 분노"]]];
 const XSTAT=[["LunarEmblem","달빛 아펠리오스",4.26,12.8,55.4,3370,"Lillia",["적응형 투구","수호자의 맹세"]],["ElderwoodEmblem","[상징] 나무정령 아펠리오스",4.34,13.6,52.5,14569,"Aphelios",["구인수의 격노검","크라켄의 분노"]],["BrawlerEmblem","[상징] 개화 마스터 이",4.44,10.1,51.4,9513,"MasterYi",["밤의 끝자락","구인수의 격노검"]],["DefenderEmblem","[상징] 엄호대 카시오페아",4.49,9.8,49.8,9631,"Rengar",["구인수의 격노검","거인의 결의"]],["EldritchEmblem","[상징] 검은 가시 유나라",4.52,10.7,49.8,2047,"Yunara",["최후의 속삭임","쇼진의 창"]],["InfernoEmblem","[상징] 고밸류 시비르 애쉬",4.59,13.1,47.2,6252,"Ashe",["붉은 덩굴정령","쇼진의 창"]],["HunterEmblem","[상징] 사냥꾼 니달리",4.67,6.2,47.7,5298,"Nidalee",["쇼진의 창","스테락의 도전"]],["ExecutionerEmblem","[상징] 처형자 자이라",4.67,9.2,47.3,25112,"Zyra",["쇼진의 창","공허의 지팡이"]],["ElderwoodEmblem","[상징] 나무정령 이즈리얼",4.71,12.4,44.8,9969,"Soraka",["라바돈의 죽음모자","쇼진의 창"]],["ElderwoodEmblem","[상징] 나무정령 이즈리얼",4.71,12.4,44.8,9969,"Kennen",[]],["SpellweaverEmblem","[상징] 주문술사 아리",4.73,10.4,45.3,3184,"Lillia",["수호자의 맹세","수호자의 맹세"]],["RapidfireEmblem","치명적인 꽃 카직스",4.85,9,43.9,2033,"Ezreal",["붉은 덩굴정령","쇼진의 창"]],["FaeEmblem","[상징] 요정 트리스타나",5.09,10,38.5,6939,"Rengar",["밤의 끝자락","구인수의 격노검"]]];
+// what a deck needs before it can be played at all: a specific augment (d.ca) or one of its must-have emblems/artifacts
+const needOf=d=>{ if(d.ca)return {kind:"증강",names:[d.ca],keys:[]}; if(!d.cond)return null;
+  const ks=[...new Set(spOf(d).filter(x=>x.t==="M").map(x=>x.k))]; const names=ks.map(k=>K2N[k]);
+  const em=names.filter(n=>/상징$/.test(n)).length; return {kind:em===names.length?"상징":em?"상징·유물":"유물",names,keys:ks}; };
+const needHas=(d,nd)=>nd.kind==="증강"?state.aug.has(nd.names[0]):nd.keys.some(k=>state.sp.has(k));
+const needTag=d=>{const nd=needOf(d); if(!nd)return ""; const ok=needHas(d,nd); return `<span class="tag ${ok?"needok":"needno"}">${ok?"✓":"🔒"} ${nd.kind} 필요</span>`;};
+const needBox=d=>{const nd=needOf(d); if(!nd)return ""; const ok=needHas(d,nd);
+  const shown=ok&&nd.kind!=="증강"?nd.names.filter((n,i)=>state.sp.has(nd.keys[i])):nd.names; const ics=shown.map(n=>`<span class="nn">${nd.kind==="증강"&&AUGM[n]?augIc(AUGM[n]):itemIc(n,true)}<b>${esc(n)}</b></span>`).join('<span class="or">또는</span>');
+  return ok?`<div class="need ok"><b>✓ 조건 충족</b>${ics}<span>을(를) 가지고 있어서 갈 수 있어요.</span></div>`
+    :`<div class="need"><b>🔒 ${nd.kind} 필요</b>${ics}<span>${nd.names.length>1?"중 하나가":"이(가)"} 있어야 갈 수 있는 덱이에요. 없으면 다른 덱을 고르세요.</span></div>`;};
 const K2N=Object.fromEntries(ART.map(a=>[a[0],a[1]]).concat(EMBL.map(e=>[e[0],e[1]+" 상징"])));
 const N2K=Object.fromEntries(Object.entries(K2N).map(([k,n])=>[n,k]));
 let XR=null, SPD=null;
@@ -887,13 +903,13 @@ function renderDecks(){
     const foldBtn=`<button type="button" class="pinb foldb" data-fold="${d.k}" data-open="${open?1:0}" aria-expanded="${open}">${open?"접기 ▲":"펼치기 ▼"}</button>`;
     const rank=pinned?`<span class="rank pinlab">고정한 덱</span>`:`<span class="rank">${ix+(pinR?0:1)}순위</span>`;
     if(!open)return `<article class="deck folded${pinned?" pinned":""}">
-      <div class="decktitle">${rank}<span class="name">${esc(d.n)}</span><span class="acts">${foldBtn}</span></div>
+      <div class="decktitle">${rank}<span class="name">${esc(d.n)}</span>${needTag(d)}<span class="acts">${foldBtn}</span></div>
     </article>`;
     return `<article class="deck${first&&!pinR?" top":""}${pinned?" pinned":""}">
       <div class="decktitle">${rank}<span class="name">${esc(d.n)}</span>
-      <div class="tags"><span class="tag ${df[1]}">난이도 ${df[0]}</span><span class="tag">${STYLE[d.st]}</span>${d.cond?`<span class="tag hard">조건부</span>`:""}${d.core.map(t=>`<span class="tag">${t}</span>`).join("")}</div><span class="acts"><button type="button" class="pinb${pinned?" on":""}" data-pin="${d.k}">${pinned?"고정 해제":"이 덱으로 고정"}</button>${foldBtn}</span></div>
+      <div class="tags"><span class="tag ${df[1]}">난이도 ${df[0]}</span><span class="tag">${STYLE[d.st]}</span>${needTag(d)}${d.core.map(t=>`<span class="tag">${t}</span>`).join("")}</div><span class="acts"><button type="button" class="pinb${pinned?" on":""}" data-pin="${d.k}">${pinned?"고정 해제":"이 덱으로 고정"}</button>${foldBtn}</span></div>
       ${d.s?`<div class="stats" title="롤체지지 통계 덱 「${esc(d.s[4])}」 기준"><span class="${state.sort==="avg"?"hi":""}"><b>${d.s[0].toFixed(2)}</b>평균 등수</span><span class="${state.sort==="win"?"hi":""}"><b>${d.s[1].toFixed(1)}%</b>1등</span><span><b>${d.s[2].toFixed(1)}%</b>4등 안</span><span>${d.s[3].toLocaleString("ko-KR")}판${d.s[3]<1000?" · 표본 적음":""} · 통계 덱 「${esc(d.s[4])}」</span></div>`:`<p class="meta">이 덱은 롤체지지 메타 통계에 짝이 되는 덱이 없습니다.</p>`}
-      <ul class="whyl">${why(r).map(x=>`<li>${x}</li>`).join("")}</ul>${body}
+      ${needBox(d)}<ul class="whyl">${why(r).map(x=>`<li>${x}</li>`).join("")}</ul>${body}
     </article>`;}).join("")+`<div class="more">${top.length<res.length+(pinR?1:0)&&state.count<D.length?`<button type="button" class="go" data-more="5">덱 5개 더 보기</button>`:""}${state.count>5?`<button type="button" class="pinb" data-more="-99">5개만 보기</button>`:""}<button type="button" class="pinb" data-foldall="1">모두 접기</button><button type="button" class="pinb" data-foldall="0">모두 펼치기</button><span class="meta">${top.length}개 표시 중 · ${stat?`통계가 있는 덱 ${totalFit}개`:`맞는 덱 ${totalFit}개 (전체 ${D.length}개 중)`}</span></div>`;
   state.shown=top.map(r=>r.d.k);
   $("bartop").textContent=top[0].d.n;
@@ -968,7 +984,7 @@ function renderSpecial(kind){
   spOf(D[0]); const R=XR, ORD={S:0,T:1,U:2,M:3,A:4}, list=XKIND[kind], byWin=state.xsort!=="avg";
   const key=x=>{const st=ISTAT[x.k]; return st?(byWin?-st[2]:st[0]):99;};
   const ranked=list.slice().sort((a,b)=>key(a)-key(b)); const rankOf=Object.fromEntries(ranked.map((x,i)=>[x.k,i+1]));
-  const dk=d=>`<button type="button" class="dk" data-open="${d.k}">${esc(d.n)}${d.s?`<em>평균 ${d.s[0].toFixed(2)}등</em>`:""}</button>`;
+  const dk=d=>`<button type="button" class="dk${needOf(d)?" lock":""}" data-open="${d.k}"${needOf(d)?` title="${needOf(d).names.join(" 또는 ")} 필요"`:""}>${needOf(d)?"🔒 ":""}${esc(d.n)}${d.s?`<em>평균 ${d.s[0].toFixed(2)}등</em>`:""}</button>`;
   const its=a=>a.map(itemChip).join(", ");
   const line=r=>{
     if(r.t==="S")return `<li><span class="st now">통계</span><span><b>${esc(r.sn)}</b> · 평균 ${r.avg.toFixed(2)}등 · 1등 ${r.win}% · 4등 안 ${r.top}% · ${r.plays.toLocaleString("ko-KR")}판<br>같이 든 아이템: ${its(r.others)}${r.decks.length?`<br>비슷한 공략 덱: ${r.decks.map(dk).join(" ")}`:""}</span></li>`;
@@ -1017,7 +1033,7 @@ document.addEventListener("error",e=>{if(e.target&&e.target.tagName==="IMG")e.ta
 // ---- augments tab
 const TIER=["실버","골드","프리즘"];
 const tierp=a=>`<span class="tierp a${a.t}">${TIER[a.t]}</span>`;
-const dkb=k=>{const d=D.find(x=>x.k===k); return d?`<button type="button" class="dk" data-open="${k}">${esc(d.n)}</button>`:"";};
+const dkb=k=>{const d=D.find(x=>x.k===k); if(!d)return ""; const nd=needOf(d); return `<button type="button" class="dk${nd?" lock":""}" data-open="${k}"${nd?` title="${esc(nd.names.join(" 또는 "))} 필요"`:""}>${nd?"🔒 ":""}${esc(d.n)}</button>`;};
 // augments that decide the deck: picking them means going this deck (trait/unit-specific augments)
 const AUGFIX={"경쟁을 넘어서":["b07fb3b9"],"종결자 협곡야수":["f41b5f58"],"흡수하는 꽃":["e1f992db","efe61c83"],"아이템 추출":["fd963bf1","53129bec"],"작은 털뭉치 친구":["7365c6b0","f7cbb31f","e1f992db"],"꽃의 부름":["9a17135f","f7cbb31f"],"커져라":["9087c98c","b020a595","f7cbb31f"],"자연의 안식처":["4950e442","cff64403","e75f15fa"],"해와 달":["459b9189","b00a6409"],"해와 달+":["459b9189","b00a6409"],"태양의 부름을 받은 자":["c41e1094","e75f15fa","5aa6e80a"],"내면의 야수":["538b7728","56ff249a","9a17135f"],"내면의 야수+":["538b7728","56ff249a","9a17135f"],"악의 여단 수행사제":["5aa6e80a","4cd8598a"],"어둠의 의식":["1eaff46b"],"화염 점화":["5aa6e80a","b00a6409"]};
 // carry damage type of a deck, from the carry's item build (a few carries overridden by hand)
