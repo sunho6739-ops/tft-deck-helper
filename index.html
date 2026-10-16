@@ -268,7 +268,7 @@ button.tile.sp0{color:var(--muted)}
 .contest .cseg button[aria-pressed="true"]{background:var(--fg);color:var(--surface);border-color:var(--fg)}
 .contest.on{padding:10px 12px;border-radius:8px;border:1px solid var(--line)}
 .contest.on.bad{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}.contest.on.warn{border-color:var(--warn)}.contest.on.ok{border-color:var(--ok)}
-.contest p{margin:8px 0 6px}.contest .pivots{display:grid;gap:6px}.contest .pv{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.contest p{margin:8px 0 6px}.contest .pvd summary{cursor:pointer;color:var(--muted);font-size:13px;margin-bottom:6px}.contest .pivots{display:grid;gap:6px}.contest .pv{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tag{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
 .tag.easy{color:var(--ok);border-color:var(--ok)}.tag.hard{color:var(--warn);border-color:var(--warn)}
 .whyl{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
@@ -857,25 +857,25 @@ function det(key,title,body,defOpen){const open=state.tog.has(key)?!defOpen:!!de
   return `<details data-k="${key}" data-d="${defOpen?1:0}"${open?" open":""}><summary>${title}</summary><div>${body}</div></details>`;}
 // other players going the same deck: rerolls suffer most (they split the copies needed for 3-stars), high-cost carries are scarce too
 const isReroll=d=>d.st[0]==="r";
-const contestPen=d=>{const n=state.contest.get(d.k)||0; if(!n)return 0; return (isReroll(d)?(n>1?1.2:0.6):(n>1?0.45:0.15))+(UM[d.c]&&UM[d.c].cost>=4?0.15:0);};
+const contestPen=d=>{const n=state.contest.get(d.k)||0; if(!n)return 0; return (isReroll(d)?(n>1?1.2:0.25):(n>1?0.45:0.05))+(UM[d.c]&&UM[d.c].cost>=4?(n>1?0.15:0.05):0);};
 function contestBox(d,all){
   const n=state.contest.get(d.k)||0, cc=UM[d.c]?UM[d.c].cost:0, cn=UM[d.c]?UM[d.c].ko:"";
   const seg=`<div class="cseg"><span class="label">다른 사람도 이 덱 가요?</span>${[["0","아니요"],["1","1명"],["2","2명 이상"]].map(([v,t])=>`<button type="button" data-contest="${d.k}:${v}" aria-pressed="${String(n)===v}">${t}</button>`).join("")}</div>`;
   if(!n)return `<div class="contest">${seg}</div>`;
   let lv,msg;
-  if(isReroll(d)){ lv=n>1?"bad":"warn";
+  if(isReroll(d)){ lv=n>1?"bad":"ok";
     msg=n>1?`리롤 덱이 2명 이상과 겹쳤어요. ${esc(cn)} 같은 3성 목표 기물을 나눠 먹어서 3성은 거의 어려워요. <b>아래 덱으로 갈아타세요.</b>`
-      :`리롤 덱이 1명과 겹쳤어요. 3성이 늦어져요. 아직 2성이 적으면 <b>아래 덱으로 갈아타는 게 나아요.</b> 계속 간다면 겹친 사람보다 먼저 리롤하세요.`; }
-  else { lv=n>1||cc>=4?"warn":"ok";
+      :`1명 정도면 <b>그대로 가도 괜찮아요.</b> 3성이 조금 늦어지니 겹친 사람보다 먼저 리롤하세요. 2성이 하나도 없는데 상대가 앞서 있다면 그때 갈아타세요.`; }
+  else { lv=n>1?"warn":"ok";
     msg=n>1?`2명 이상과 겹치면 캐리 ${esc(cn)} 2성이 어려워져요. 가진 기물이 많지 않으면 <b>아래 덱으로 갈아타세요.</b>`
-      :`레벨업 덱이라 1명과 겹쳐도 할 만해요. 2성만 맞추면 돼요. 레벨을 조금 일찍 올려 먼저 찾으세요.${cc>=4?` 다만 캐리 ${esc(cn)}${(()=>{const c=cn.charCodeAt(cn.length-1)-0xAC00; return c>=0&&c<11172&&c%28?"이":"가";})()} ${cc}코스트라 장수가 적어 2성이 늦을 수 있어요.`:""}`; }
+      :`1명 정도면 <b>그대로 가도 괜찮아요.</b> 레벨업 덱은 2성만 맞추면 돼요. 레벨을 조금 일찍 올려 먼저 찾으세요.${cc>=4?` 다만 캐리 ${esc(cn)}${(()=>{const c=cn.charCodeAt(cn.length-1)-0xAC00; return c>=0&&c<11172&&c%28?"이":"가";})()} ${cc}코스트라 장수가 적어 2성이 늦을 수 있어요.`:""}`; }
   const typ=deckType(d);
   const piv=all.filter(x=>x.d.k!==d.k&&!state.contest.get(x.d.k)&&x.d.c!==d.c&&(x.fit>0||!state.owned.size)&&(()=>{const nd=needOf(x.d); return !nd||needHas(x.d,nd);})())
     .map(x=>{const share=[...state.owned].filter(id=>x.d.b.some(b=>b[0]===id)||x.d.e5.includes(id)||x.d.e7.includes(id)).length; const same=deckType(x.d)===typ;
       return {x,share,same,sc:share+(same?1.5:0)+(4.6-deckAvg(x.d))*2+(isReroll(d)&&n>1&&isReroll(x.d)?-0.5:0)};})
     .sort((a,b)=>b.sc-a.sc).slice(0,3);
   const pv=piv.length?`<div class="pivots"><span class="label">갈아탈 덱</span>${piv.map(p=>`<div class="pv"><button type="button" class="dk${needOf(p.x.d)?" lock":""}" data-open="${p.x.d.k}">${esc(p.x.d.n)}</button><span class="meta">${[p.share?`가진 기물 ${p.share}개 그대로`:"",p.same?`아이템 그대로(${typ})`:`아이템 다시(${deckType(p.x.d)})`,p.x.d.s?`평균 ${p.x.d.s[0].toFixed(2)}등`:""].filter(Boolean).join(" · ")}</span></div>`).join("")}</div>`:"";
-  return `<div class="contest on ${lv}">${seg}<p>${msg}</p>${pv}</div>`;
+  return `<div class="contest on ${lv}">${seg}<p>${msg}</p>${n>1?pv:pv?`<details class="pvd"><summary>그래도 갈아탄다면</summary>${pv}</details>`:""}</div>`;
 }
 function renderDecks(){
   let res=recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug); const ALLR=res.slice();
