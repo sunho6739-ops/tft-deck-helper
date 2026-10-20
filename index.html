@@ -263,6 +263,15 @@ button.tile.sp0{color:var(--muted)}
 .need .or{color:var(--muted);font-size:13px}.need .nn{display:inline-flex;align-items:center;gap:5px}.need .nn .ic{display:inline-block}
 .need .aic{width:22px;height:22px}
 .dk.lock{border-style:dashed}
+.force{margin:0 0 18px}.force .fhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}.force h2{font-size:18px;margin:0}
+.fcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.fcards{grid-template-columns:1fr}}
+.fcard{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;min-width:0}
+.fcard:hover{border-color:var(--accent)}
+.fcard .frank{font-weight:700;font-size:20px;color:var(--accent);width:18px;text-align:center;flex:none}
+.fcard .mini .pt{width:40px;height:40px}
+.fcard .ftxt{display:flex;flex-direction:column;gap:2px;min-width:0}.fcard .ftxt b{font-size:15px}
+.fcard .fstat{font-size:13px;color:var(--fg)}.fcard .fwhy{font-size:12.5px;color:var(--muted)}
 .contest{margin:6px 0;font-size:14px}.contest .cseg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .contest .cseg .label{margin-right:4px}.contest .cseg button{font:inherit;font-size:13px;padding:3px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
 .contest .cseg button[aria-pressed="true"]{background:var(--fg);color:var(--surface);border-color:var(--fg)}
@@ -423,6 +432,7 @@ a{color:var(--accent)}
   <nav class="tabs" aria-label="화면 선택"><button type="button" data-tab="decks" aria-pressed="true">덱 추천</button><button type="button" data-tab="emb" aria-pressed="false">상징</button><button type="button" data-tab="art" aria-pressed="false">유물</button><button type="button" data-tab="aug" aria-pressed="false">증강</button><button type="button" data-tab="patch" aria-pressed="false">패치</button><button type="button" id="theme" class="themeb" aria-label="화면 밝기 바꾸기"></button></nav>
 
   <div id="tab-decks">
+  <section class="force" id="force" aria-label="대깨 추천"></section>
   <div class="cols">
   <div class="col pick">
     <div class="resetbar" role="group" aria-label="초기화">
@@ -877,6 +887,23 @@ function contestBox(d,all){
   const pv=piv.length?`<div class="pivots"><span class="label">갈아탈 덱</span>${piv.map(p=>`<div class="pv"><button type="button" class="dk${needOf(p.x.d)?" lock":""}" data-open="${p.x.d.k}">${esc(p.x.d.n)}</button><span class="meta">${[p.share?`가진 기물 ${p.share}개 그대로`:"",p.same?`아이템 그대로(${typ})`:`아이템 다시(${deckType(p.x.d)})`,p.x.d.s?`평균 ${p.x.d.s[0].toFixed(2)}등`:""].filter(Boolean).join(" · ")}</span></div>`).join("")}</div>`:"";
   return `<div class="contest on ${lv}">${seg}<p>${msg}</p>${n>1?pv:pv?`<details class="pvd"><summary>그래도 갈아탄다면</summary>${pv}</details>`:""}</div>`;
 }
+// "대깨" picks: decks you can force from any start - stable (top-4 rate), no emblem/augment needed, forgiving when contested, not too hard
+function forceTop(){
+  const seen=new Set();
+  return D.filter(d=>d.s&&d.s[3]>=3000&&!needOf(d))
+    .map(d=>({d,sc:d.s[0]-(d.s[2]-50)/100+(isReroll(d)?0.15:0)+(d.d==="H"?0.15:d.d==="E"?-0.05:0)}))
+    .sort((a,b)=>a.sc-b.sc).filter(x=>{if(seen.has(x.d.s[4]))return false; seen.add(x.d.s[4]); return true;}).slice(0,3);
+}
+function renderForce(){
+  const el=$("force"); if(!el)return; const top=forceTop(); if(!top.length){el.hidden=true;return;} el.hidden=false;
+  const day=(document.querySelector("header .meta")||{textContent:""}).textContent.match(/\d{4}-(\d{2})-(\d{2})/);
+  const DF={E:"쉬움",M:"보통",H:"어려움"};
+  el.innerHTML=`<div class="fhead"><h2>오늘의 대깨 덱 TOP 3</h2><span class="meta">${day?`${+day[1]}/${+day[2]} 통계 · `:""}뭘 할지 모르겠으면 아무 판에서나 이 덱만 밀어도 잘 안 망해요</span></div><div class="fcards">`+
+    top.map((x,i)=>{const d=x.d;
+      const why=[`4등 안 ${d.s[2].toFixed(0)}%`,isReroll(d)?"겹치면 조금 불리":"겹쳐도 할 만함",`난이도 ${DF[d.d]||"보통"}`].join(" · ");
+      return `<button type="button" class="fcard" data-force="${d.k}"><span class="frank">${i+1}</span><span class="mini">${unitPt(d.c)}</span><span class="ftxt"><b>${esc(d.n)}</b><span class="fstat">평균 ${d.s[0].toFixed(2)}등 · ${STYLE[d.st]}</span><span class="fwhy">${why}</span></span></button>`;}).join("")+`</div>`;
+}
+$("force").addEventListener("click",e=>{const b=e.target.closest("[data-force]"); if(!b)return; state.pin=b.dataset.force; state.fold.set(state.pin,true); renderDecks(); $("results").scrollIntoView({block:"start"});});
 function renderDecks(){
   let res=recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug); const ALLR=res.slice();
   const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean)&&!state.sp.size&&!state.aug.size;
@@ -1205,7 +1232,7 @@ const touchOnly=()=>window.matchMedia&&matchMedia("(hover: none)").matches;
 document.addEventListener("mouseover",e=>{ if(touchOnly())return; const t=e.target.closest("[data-tn]"); if(t)showTip(t); else hov.hidden=true; });
 document.addEventListener("click",e=>{ if(!touchOnly())return; const t=e.target.closest("[data-tn]"); if(!t){hov.hidden=true;return;} showTip(t); clearTimeout(hovT); hovT=setTimeout(()=>{hov.hidden=true;},3500); });
 addEventListener("scroll",()=>{hov.hidden=true;},{passive:true});
-function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); paintResets(); }
+function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); renderForce(); paintResets(); }
 function touched(){ state.example=false; save(); }
 function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
 
