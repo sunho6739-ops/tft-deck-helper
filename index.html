@@ -104,6 +104,13 @@ button.tile.s0:hover .pt{filter:none;opacity:1}
 .legend i{width:14px;height:14px;border-radius:4px;display:inline-block;background:var(--raised)}
 .legend .l1{box-shadow:0 0 0 2px var(--s1);background:var(--s1)}.legend .l2{box-shadow:0 0 0 2px var(--s2);background:var(--s2)}.legend .l3{box-shadow:0 0 0 2px var(--s3),0 0 8px 2px var(--s3);background:var(--s3)}
 /* components */
+.fullhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:14px 0 6px}.fullhead h3{margin:0;font-size:15px}
+#fq{width:100%;margin-bottom:8px}
+.fullgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;max-height:260px;overflow:auto;padding-right:2px}
+.fitem{position:relative;display:flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;text-align:left;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 6px;cursor:pointer;min-width:0}
+.fitem .ic{width:24px;height:24px;flex:none}.fitem .fn{line-height:1.25;word-break:keep-all}
+.fitem.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg))}
+.fitem .fk{position:absolute;top:-6px;right:-6px;background:var(--accent);color:var(--accent-ink);border-radius:999px;font-size:11px;min-width:17px;height:17px;display:grid;place-items:center}
 .comps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:520px){.comps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .comp{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 6px;min-width:0;text-align:center}
@@ -452,8 +459,11 @@ a{color:var(--accent)}
       <div id="unitgrid" style="display:flex;flex-direction:column;gap:10px"></div>
     </section>
     <section aria-labelledby="h-comp">
-      <h2 id="h-comp"><span class="no">2</span>내 아이템 재료</h2>
+      <h2 id="h-comp"><span class="no">2</span>내 아이템</h2>
       <div class="comps" id="compgrid"></div>
+      <div class="fullhead"><h3>완성 아이템</h3><span class="meta">이미 만든 아이템을 누르세요 · 한 번 더 누르면 2개, 또 누르면 빼기</span></div>
+      <input type="search" id="fq" placeholder="완성 아이템 검색 (예: 구인수, ㄱㅇㅅ)" aria-label="완성 아이템 검색">
+      <div class="fullgrid" id="fullgrid"></div>
     </section>
     <section aria-labelledby="h-sp">
       <h2 id="h-sp"><span class="no">3</span>내 상징 · 유물 · 증강</h2>
@@ -645,7 +655,9 @@ function allocate(holders, inv){
   const have={...inv};
   const rows=holders.map(h=>({id:h[0],items:h[2].map(n=>({n,r:I[n]||null,st:"none",need:null}))}));
   const all=rows.flatMap(r=>r.items);
-  all.forEach(o=>{ if(!o.r){o.st="special";return;}
+  const full={...((typeof state!=="undefined"&&state.full)||{})};
+  all.forEach(o=>{ if(o.r&&full[o.n]>0){o.st="done";full[o.n]--;} });
+  all.forEach(o=>{ if(!o.r){o.st="special";return;} if(o.st==="done")return;
     const [a,b]=o.r; const ok=a===b?(have[a]||0)>=2:(have[a]||0)>=1&&(have[b]||0)>=1;
     if(ok){o.st="now";have[a]--;have[b]--;}});
   all.forEach(o=>{ if(o.st!=="none")return; const [a,b]=o.r;
@@ -703,6 +715,8 @@ function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   const others=rows.filter(r=>r.id!==d.c).flatMap(r=>r.items);
   s+=now.length*1.5+half.length*0.5+Math.min(others.filter(o=>o.st==="now").length*0.7,1.4);
   fit+=now.length*1.5;
+  const done=car.filter(o=>o.st==="done"), doneO=others.filter(o=>o.st==="done");
+  s+=done.length*2.5+Math.min(doneO.length,2); fit+=done.length*3+Math.min(doneO.length,2);
   const spUse=sp&&sp.size?spOf(d).filter(x=>sp.has(x.k)):[];
   const seenK=new Set();
   spUse.forEach(x=>{ if(seenK.has(x.k))return; seenK.add(x.k); const v={M:3,S:2.5,U:2,A:1.5,T:1.5}[x.t]; s+=v; fit+=v; });
@@ -713,7 +727,7 @@ function scoreDeck(d, owned, inv, easy, star={}, sp=null, aug=null){
   if(d.ca&&!caOk){fit=0; s-=3;} // a deck that only works with one augment is not suggested until that augment is picked
   if(d.cond&&!caOk&&!spUse.some(x=>x.t==="M")){s-=1; fit=0;} // conditional decks only once the emblem/artifact/augment is held
   if(easy){ if(d.d==="H")s-=1.5; if(d.d==="E")s+=0.5; }
-  return {d,s,inB,inE:inE.concat(inM),near,rows,now,half,spUse,augUse,fit,sig};
+  return {d,s,inB,inE:inE.concat(inM),near,rows,now,half,done,doneO,spUse,augUse,fit,sig};
 }
 function recommend(owned, inv, easy, star, sp, aug){
   return D.map((d,i)=>({...scoreDeck(d,owned,inv,easy,star,sp,aug),i})).sort((a,b)=>b.s-a.s||a.i-b.i);
@@ -774,12 +788,12 @@ const itemChip=n=>anyIc(n,"sm");
 const compIc=(c,sm)=>`<span class="ic${sm?" sm":""}">${img("i/"+CFILE[c])}</span>`;
 const recipe=r=>`${compIc(r[0],1)}${CM[r[0]]} + ${compIc(r[1],1)}${CM[r[1]]}`;
 
-const state={contest:new Map(),pdir:"all",aug:new Set(),offer:[],atier:"all",xsort:"win",fold:new Map(),count:5,sp:new Set(),pin:null,tab:"decks",sort:"fit",tog:new Set(),owned:new Set(["Karma","Yorick","Yunara"]),inv:{Rod:1,Tear:1},easy:true,example:true,lv:{Yorick:2,Karma:3}};
+const state={full:{},contest:new Map(),pdir:"all",aug:new Set(),offer:[],atier:"all",xsort:"win",fold:new Map(),count:5,sp:new Set(),pin:null,tab:"decks",sort:"fit",tog:new Set(),owned:new Set(["Karma","Yorick","Yunara"]),inv:{Rod:1,Tear:1},easy:true,example:true,lv:{Yorick:2,Karma:3}};
 const LVL=id=>state.owned.has(id)?(state.lv[id]||1):0;
 const STARS=["","★","★★","★★★"];
 const lvBadge=id=>LVL(id)?`<span class="bdg lvb">${STARS[LVL(id)]}</span>`:"";
-try{const raw=localStorage.getItem("tftguide"); if(raw){const p=JSON.parse(raw); state.owned=new Set((p.owned||[]).filter(id=>UM[id])); state.lv={}; (p.star2||[]).forEach(id=>{if(state.owned.has(id))state.lv[id]=2;}); Object.entries(p.lv||{}).forEach(([id,v])=>{if(state.owned.has(id)&&(v===2||v===3))state.lv[id]=v;}); state.inv=p.inv||{}; state.easy=p.easy!==false; state.sp=new Set((p.sp||[]).filter(k=>K2N[k])); state.aug=new Set((p.aug||[]).map(n=>n==="일인자"?"경쟁을 넘어서":n).filter(n=>AUGM[n])); state.example=false;}}catch(e){}
-function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...state.owned],lv:state.lv,sp:[...state.sp],aug:[...state.aug],inv:state.inv,easy:state.easy}));}catch(e){}}
+try{const raw=localStorage.getItem("tftguide"); if(raw){const p=JSON.parse(raw); state.owned=new Set((p.owned||[]).filter(id=>UM[id])); state.lv={}; (p.star2||[]).forEach(id=>{if(state.owned.has(id))state.lv[id]=2;}); Object.entries(p.lv||{}).forEach(([id,v])=>{if(state.owned.has(id)&&(v===2||v===3))state.lv[id]=v;}); state.inv=p.inv||{}; state.full=Object.fromEntries(Object.entries(p.full||{}).filter(([n,v])=>I[n]&&v>0)); state.easy=p.easy!==false; state.sp=new Set((p.sp||[]).filter(k=>K2N[k])); state.aug=new Set((p.aug||[]).map(n=>n==="일인자"?"경쟁을 넘어서":n).filter(n=>AUGM[n])); state.example=false;}}catch(e){}
+function save(){try{localStorage.setItem("tftguide",JSON.stringify({owned:[...state.owned],lv:state.lv,sp:[...state.sp],aug:[...state.aug],inv:state.inv,full:state.full,easy:state.easy}));}catch(e){}}
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -804,7 +818,15 @@ function renderUnits(){
         return `<span class="tw"><button type="button" class="tile k${c} s${L}" data-u="${u.id}" aria-pressed="${L>0}" aria-label="${esc(u.ko)}${L>1?" "+L+"성":L?" 보유":""}" title="${esc(u.traits.join(" · "))}">${unitPt(u.id,lvBadge(u.id))}<span>${esc(u.ko)}</span></button>${L?`<button type="button" class="rm" data-rm="${u.id}" aria-label="${esc(u.ko)} 빼기" title="빼기">×</button>`:""}</span>`;}).join("")+`</div></div>`;
   }).join("")||`<p class="meta">그 이름의 기물이 없습니다.</p>`;
 }
-function renderComps(){
+// completed items the guides use, most used first
+const FULLS=(()=>{const c={}; D.forEach(d=>d.b.forEach(x=>x[2].forEach(n=>{if(I[n])c[n]=(c[n]||0)+1;}))); return Object.keys(I).sort((a,b)=>(c[b]||0)-(c[a]||0)||a.localeCompare(b));})();
+const carryDecks=n=>D.filter(d=>!d.cond&&!d.ca&&(d.b.find(x=>x[0]===d.c)||[0,0,[]])[2].includes(n));
+function renderFull(){
+  const q=$("fq").value.trim();
+  $("fullgrid").innerHTML=FULLS.filter(n=>!q||kmatch(n,q)).map(n=>{const k=state.full[n]||0; const cd=carryDecks(n).sort((a,b)=>deckAvg(a)-deckAvg(b)).slice(0,4);
+    return `<button type="button" class="fitem${k?" on":""}" data-full="${esc(n)}" aria-pressed="${!!k}"${tipA(n,CM[I[n][0]]+" + "+CM[I[n][1]],cd.length?"캐리가 드는 덱: "+cd.map(d=>d.n).join(", "):"")}><span class="ic">${IFILE[n]?img("i/"+IFILE[n]):""}</span><span class="fn">${esc(n)}</span>${k?`<b class="fk">${k}</b>`:""}</button>`;}).join("")||'<p class="meta">찾는 아이템이 없습니다.</p>';
+}
+function renderComps(){ renderFull();
   $("compgrid").innerHTML=C.map(([id,ko,full])=>{const n=state.inv[id]||0;
     return `<div class="comp${n?" has":""}">${compIc(id)}<span><b>${ko}</b><small>${full}</small></span><div class="step"><button type="button" data-c="${id}" data-d="-1" aria-label="${ko} 빼기"${n?"":" disabled"}>−</button><output>${n}</output><button type="button" data-c="${id}" data-d="1" aria-label="${ko} 더하기"${n>=20?" disabled":""}>+</button></div></div>`;}).join("");
 }
@@ -815,7 +837,7 @@ function unitTag(id,role,goal,tmp){const u=UM[id],L=LVL(id);
 function itemRow(o,to){
   to=to?` <em>→ ${to}</em>`:"";
   if(o.st==="special"){const have=state.sp.has(N2K[o.n]); return `<li><span class="ic">${N2K[o.n]?img("x/"+N2K[o.n]):""}</span><span class="it">${o.n}${to}<small>${SPECIAL[o.n]||"조합 불가"}</small></span><span class="st ${have?"now":"none"}">${have?"보유":"특수"}</span></li>`;}
-  const [cls,txt]=o.st==="now"?["now","지금 조합"]:o.st==="half"?["half",CM[o.need]+" 필요"]:["none","재료 없음"];
+  const [cls,txt]=o.st==="done"?["now","완성 보유"]:o.st==="now"?["now","지금 조합"]:o.st==="half"?["half",CM[o.need]+" 필요"]:["none","재료 없음"];
   return `<li>${itemIc(o.n)}<span class="it">${o.n}${to}<small>${recipe(o.r)}</small></span><span class="st ${cls}">${txt}</span></li>`;}
 function why(r){
   const p=[], d=r.d, all=r.inB.concat(r.inE);
@@ -829,6 +851,8 @@ function why(r){
   if(!all.length&&r.near.length)p.push(`<b>${r.near.map(id=>UM[id].ko).join(", ")}</b>의 특성이 이 덱과 겹칩니다.`);
   [...new Set(r.spUse.map(x=>x.k))].forEach(k=>{const x=r.spUse.find(y=>y.k===k); const f=x.others&&x.others.length?{others:x.others}:fillOthers(k,x.ch); p.push(`가진 <b>${K2N[k]}</b>은(는) 이 덱에서 ${UM[x.ch].ko}에게 줍니다.${f.others.length?` 나머지 두 칸은 <b>${f.others.slice(0,2).join(", ")}</b>.`:""}`);});
   if(r.augUse&&r.augUse.length)p.push(`고른 증강 <b>${r.augUse.map(a=>esc(a.n)).join(", ")}</b>을(를) 이 덱 공략에서 추천합니다.`);
+  if(r.done&&r.done.length)p.push(`가진 완성 아이템 <b>${r.done.map(o=>o.n).join(", ")}</b>은(는) 캐리 <b>${UM[d.c].ko}</b>에게 줍니다.`);
+  if(r.doneO&&r.doneO.length){const rr=r.rows.filter(x=>x.id!==d.c&&x.items.some(o=>o.st==="done")); p.push(`가진 완성 아이템 ${rr.map(x=>`<b>${x.items.filter(o=>o.st==="done").map(o=>o.n).join(", ")}</b> → ${UM[x.id].ko}`).join(", ")}에게 줍니다.`);}
   if(r.now.length)p.push(`캐리 아이템 <b>${r.now.map(o=>o.n).join(", ")}</b>을(를) 바로 만들 수 있습니다.`);
   else if(r.half.length)p.push("캐리 아이템 재료를 일부 갖고 있습니다.");
   if(!p.length)p.push("겹치는 기물이나 재료가 아직 없습니다.");
@@ -839,7 +863,7 @@ function why(r){
 function carousel(r){
   const d=r.d, sc={}, why={};
   r.rows.forEach(row=>{const w=row.id===d.c?3:row.id===d.t?2:1;
-    row.items.forEach(o=>{ if(!o.r||o.st==="now")return;
+    row.items.forEach(o=>{ if(!o.r||o.st==="now"||o.st==="done")return;
       const add=(c,v,fin)=>{sc[c]=(sc[c]||0)+v; if(!why[c]||v>why[c].v)why[c]={v,n:o.n,id:row.id,fin};};
       if(o.st==="half")add(o.need,w*2,true);
       else if(o.r[0]===o.r[1])add(o.r[0],w,false);
@@ -854,7 +878,7 @@ function todo(r){
   for(const [nm,list] of d.stages){buy=miss(list);stage=nm+(nm==="완성"?" 보드":" 보드");if(buy.length)break;}
   const holderNow=id=>{const first=d.chain[id][0]; return first&&!state.owned.has(id)?`지금은 ${UM[first].ko}, 나중에 ${UM[id].ko}`:UM[id].ko;};
   const pick=st=>r.rows.flatMap(row=>row.items.filter(o=>o.st===st).map(o=>itemRow(o,holderNow(row.id))));
-  const nowI=pick("now"), halfI=pick("half").slice(0,3);
+  const nowI=pick("done").concat(pick("now")), halfI=pick("half").slice(0,3);
   const items=nowI.length?nowI.join(""):halfI.length?halfI.join("")
     :`<li><span class="ic"></span><span class="it">아직 만들 핵심 아이템이 없습니다<small>「아이템 전체」에서 필요한 재료를 확인하세요</small></span><span class="st none">대기</span></li>`;
   const tmpOwned=d.temp.filter(id=>state.owned.has(id));
@@ -913,7 +937,7 @@ function renderForce(){
 $("force").addEventListener("click",e=>{const b=e.target.closest("[data-force]"); if(!b)return; state.pin=b.dataset.force; state.fold.set(state.pin,true); renderDecks(); $("results").scrollIntoView({block:"start"});});
 function renderDecks(){
   let res=recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug); const ALLR=res.slice();
-  const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean)&&!state.sp.size&&!state.aug.size;
+  const empty=!state.owned.size&&!Object.values(state.inv).some(Boolean)&&!Object.values(state.full).some(Boolean)&&!state.sp.size&&!state.aug.size;
   const stat=state.sort!=="fit";
   if(stat){res=res.filter(r=>r.d.s).sort((a,b)=>state.sort==="avg"?a.d.s[0]-b.d.s[0]||b.s-a.s:b.d.s[1]-a.d.s[1]||b.s-a.s);}
   let mode="fit";
@@ -932,7 +956,7 @@ function renderDecks(){
   const top=(pinR?[pinR]:[]).concat(res.filter(r=>!pinR||r.d.k!==pinR.d.k).slice(0,state.count));
   $("easywrap").hidden=stat;
   $("sortnote").hidden=false;
-  $("sortnote").innerHTML=!stat?(mode==="strong"?"<b>이번 패치 센 덱 TOP 5</b> · 아직 고른 것이 없어서 18.5 평균 등수가 좋은 덱을 보여줍니다. 가진 기물을 고르면 갈 수 있는 덱으로 좁혀집니다.":mode==="weak"?"<b>아직 덱을 정하기엔 일러요.</b> 1코처럼 흔한 기물만으로는 신호가 약해서, 갈 만한 덱을 평균 등수가 좋은 순서로 보여줍니다. 2코·3코 2성이나 4코가 생기면 다시 보세요.":"가진 기물로 갈 수 있는 덱만 골라 <b>이번 패치 평균 등수가 좋은 순서</b>로 보여줍니다. 잘 안 나오는 기물(3·4코, 2성)일수록 크게 보고, 많은 덱이 쓰는 흔한 기물은 작게 봅니다."):`롤체지지 메타 통계(패치 18.5, 마스터 이상, 약 3만 6천 판)에서 구성이 비슷한 덱의 수치입니다. 통계에 짝이 없는 덱 ${D.length-res.length}개는 이 순서에서 빠집니다. 내 기물은 순서에 반영되지 않습니다.`;
+  $("sortnote").innerHTML=!stat?(mode==="strong"?"<b>이번 패치 센 덱 TOP 5</b> · 아직 고른 것이 없어서 18.5 평균 등수가 좋은 덱을 보여줍니다. 가진 기물을 고르면 갈 수 있는 덱으로 좁혀집니다.":mode==="weak"?(!state.owned.size&&Object.values(state.full).some(Boolean)?"<b>완성 아이템 기준 추천이에요.</b> 고른 아이템을 캐리가 드는 덱을 평균 등수가 좋은 순서로 보여줍니다. 가진 기물을 고르면 더 정확해져요.":"<b>아직 덱을 정하기엔 일러요.</b> 1코처럼 흔한 기물만으로는 신호가 약해서, 갈 만한 덱을 평균 등수가 좋은 순서로 보여줍니다. 2코·3코 2성이나 4코가 생기면 다시 보세요."):"가진 기물로 갈 수 있는 덱만 골라 <b>이번 패치 평균 등수가 좋은 순서</b>로 보여줍니다. 잘 안 나오는 기물(3·4코, 2성)일수록 크게 보고, 많은 덱이 쓰는 흔한 기물은 작게 봅니다."):`롤체지지 메타 통계(패치 18.5, 마스터 이상, 약 3만 6천 판)에서 구성이 비슷한 덱의 수치입니다. 통계에 짝이 없는 덱 ${D.length-res.length}개는 이 순서에서 빠집니다. 내 기물은 순서에 반영되지 않습니다.`;
   if(!top.length&&mode==="fit"){
     $("decks").innerHTML=`<div class="none"><svg class="masc sm" viewBox="0 0 140 140" aria-hidden="true"><use href="#masc"/></svg><b>${empty?"아직 고른 것이 없습니다":"딱 맞는 덱이 없습니다"}</b><p>${empty?"왼쪽에서 가진 기물, 아이템 재료, 상징·유물을 고르면 거기에 맞는 덱만 여기에 나옵니다.":"지금 고른 것만으로는 어울리는 덱을 정하기 어렵습니다. 가진 기물을 더 골라 보세요."}</p><p class="meta">무엇을 갈지 감이 없다면 위의 「강한 순」이나 「승률 순」을 눌러 보세요.</p></div>`;
     state.shown=[]; $("bartop").textContent=empty?"기물을 고르세요":"맞는 덱 없음"; $("barlabel").textContent="추천 덱"; return; }
@@ -1136,7 +1160,7 @@ const kchip=a=>{const c=augClass(a.n); return `<span class="kchip ${c.kind}">${e
 function augTargets(){
   const res=recommend(state.owned,state.inv,state.easy,state.lv,state.sp,state.aug);
   if(state.pin){const r=res.find(x=>x.d.k===state.pin); if(r)return {pin:true,list:[r]};}
-  const has=state.owned.size||Object.values(state.inv).some(Boolean)||state.sp.size||state.aug.size;
+  const has=state.owned.size||Object.values(state.inv).some(Boolean)||Object.values(state.full).some(Boolean)||state.sp.size||state.aug.size;
   if(!has||state.example)return {pin:false,list:[]};
   const best=Math.max(0,...res.map(r=>r.fit)), cut=fitCut(best);
   return {pin:false,list:res.filter(r=>r.fit>=cut).slice(0,3)};
@@ -1241,7 +1265,7 @@ document.addEventListener("click",e=>{ if(!touchOnly())return; const t=e.target.
 addEventListener("scroll",()=>{hov.hidden=true;},{passive:true});
 function renderAll(){ document.body.classList.toggle("noimg",!HASIMG); renderSpecial("emb"); renderEGrid(); renderSpecial("art"); renderAug(); renderSpSel(); $("exnote").hidden=!state.example; $("easy").checked=state.easy; renderUnits(); renderComps(); renderDecks(); renderForce(); paintResets(); }
 function touched(){ state.example=false; save(); }
-function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};} }
+function clearExample(){ if(state.example){state.owned.clear();state.lv={};state.inv={};state.full={};} }
 
 $("unitgrid").addEventListener("click",e=>{
   const x=e.target.closest("[data-rm]");
@@ -1257,11 +1281,13 @@ $("compgrid").addEventListener("click",e=>{const b=e.target.closest("[data-c]");
   clearExample();
   const id=b.dataset.c; state.inv[id]=Math.max(0,Math.min(20,(state.inv[id]||0)+Number(b.dataset.d))); touched(); renderAll();});
 $("q").addEventListener("input",renderUnits);
+$("fq").addEventListener("input",renderFull);
+$("fullgrid").addEventListener("click",e=>{const b=e.target.closest("[data-full]"); if(!b)return; clearExample(); const n=b.dataset.full; const k=((state.full[n]||0)+1)%3; if(k)state.full[n]=k; else delete state.full[n]; touched(); renderAll();});
 $("results").addEventListener("click",e=>{const b=e.target.closest("[data-sort]"); if(!b)return; state.sort=b.dataset.sort;
   document.querySelectorAll(".seg [data-sort]").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderDecks();});
 $("easy").addEventListener("change",e=>{state.easy=e.target.checked; save(); renderDecks();});
 // main tab: everything at once, or just the units
-$("resetAll").addEventListener("click",()=>{state.owned.clear();state.lv={};state.inv={};state.sp.clear();state.aug.clear();state.offer=[];state.pin=null;state.fold.clear();state.contest.clear();$("q").value="";touched();renderAll();});
+$("resetAll").addEventListener("click",()=>{state.owned.clear();state.lv={};state.inv={};state.full={};$("fq").value="";state.sp.clear();state.aug.clear();state.offer=[];state.pin=null;state.fold.clear();state.contest.clear();$("q").value="";touched();renderAll();});
 $("reset").addEventListener("click",()=>{state.owned.clear();state.lv={};$("q").value="";touched();renderAll();});
 function paintResets(){
   const nu=state.example?0:state.owned.size, ni=state.example?0:Object.values(state.inv).reduce((a,b)=>a+(b||0),0);
@@ -1269,7 +1295,7 @@ function paintResets(){
   const set=(id,n)=>{const el=$(id); if(el)el.textContent=n?n+"개":"";};
   set("cnt-units",nu); set("cnt-emb",ne); set("cnt-art",na); set("cnt-aug",ng);
   $("reset").disabled=!nu; document.querySelector('[data-spclear="emb"]').disabled=!ne; document.querySelector('[data-spclear="art"]').disabled=!na; $("augclear").disabled=!ng;
-  const parts=[nu&&`기물 ${nu}`,ni&&`재료 ${ni}`,ne&&`상징 ${ne}`,na&&`유물 ${na}`,state.aug.size&&`증강 ${state.aug.size}`,state.pin&&"고정 덱 1"].filter(Boolean);
+  const nf=state.example?0:Object.values(state.full).reduce((a,b)=>a+(b||0),0); const parts=[nu&&`기물 ${nu}`,ni&&`재료 ${ni}`,nf&&`완성 ${nf}`,ne&&`상징 ${ne}`,na&&`유물 ${na}`,state.aug.size&&`증강 ${state.aug.size}`,state.pin&&"고정 덱 1"].filter(Boolean);
   $("resetAll").disabled=!parts.length&&!state.example; $("resetsum").textContent=state.example?"지금은 예시로 골라 둔 상태입니다":parts.length?"선택: "+parts.join(" · "):"선택한 것이 없습니다";
 }
 $("go").addEventListener("click",()=>$("results").scrollIntoView({block:"start"}));
